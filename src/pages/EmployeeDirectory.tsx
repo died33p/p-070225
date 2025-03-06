@@ -1,44 +1,45 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Search, UserPlus, Pencil, Trash2, User } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Employee {
   id: string;
   name: string;
   position: string;
-  department: string;
+  shift: number;
 }
 
 const EmployeeDirectory = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [employees, setEmployees] = useState<Employee[]>([
-    { id: "1", name: "Иванов Иван Иванович", position: "Менеджер", department: "Отдел продаж" },
-    { id: "2", name: "Петров Петр Петрович", position: "Разработчик", department: "ИТ-отдел" },
-    { id: "3", name: "Сидорова Анна Михайловна", position: "Бухгалтер", department: "Финансовый отдел" },
+    { id: "1", name: "Иванов Иван Иванович", position: "Менеджер", shift: 1 },
+    { id: "2", name: "Петров Петр Петрович", position: "Разработчик", shift: 2 },
+    { id: "3", name: "Сидорова Анна Михайловна", position: "Бухгалтер", shift: 0 },
   ]);
   const [isAddingEmployee, setIsAddingEmployee] = useState(false);
   const [isEditingEmployee, setIsEditingEmployee] = useState(false);
   const [newEmployee, setNewEmployee] = useState<Partial<Employee>>({
     name: "",
     position: "",
-    department: "",
+    shift: 0,
   });
   const [editEmployeeId, setEditEmployeeId] = useState<string | null>(null);
 
   const filteredEmployees = employees.filter((employee) =>
     employee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     employee.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    employee.department.toLowerCase().includes(searchQuery.toLowerCase())
+    employee.shift.toString().includes(searchQuery)
   );
 
   const handleAddEmployee = () => {
-    if (!newEmployee.name || !newEmployee.position || !newEmployee.department) {
+    if (!newEmployee.name || !newEmployee.position) {
       toast({
         title: "Ошибка",
         description: "Пожалуйста, заполните все поля",
@@ -49,7 +50,7 @@ const EmployeeDirectory = () => {
 
     const id = Date.now().toString();
     setEmployees([...employees, { id, ...newEmployee as Employee }]);
-    setNewEmployee({ name: "", position: "", department: "" });
+    setNewEmployee({ name: "", position: "", shift: 0 });
     setIsAddingEmployee(false);
     toast({
       title: "Сотрудник добавлен",
@@ -58,7 +59,7 @@ const EmployeeDirectory = () => {
   };
 
   const handleEditEmployee = () => {
-    if (!newEmployee.name || !newEmployee.position || !newEmployee.department) {
+    if (!newEmployee.name || !newEmployee.position) {
       toast({
         title: "Ошибка",
         description: "Пожалуйста, заполните все поля",
@@ -74,7 +75,7 @@ const EmployeeDirectory = () => {
           : emp
       )
     );
-    setNewEmployee({ name: "", position: "", department: "" });
+    setNewEmployee({ name: "", position: "", shift: 0 });
     setIsEditingEmployee(false);
     setEditEmployeeId(null);
     toast({
@@ -87,7 +88,7 @@ const EmployeeDirectory = () => {
     setNewEmployee({
       name: employee.name,
       position: employee.position,
-      department: employee.department,
+      shift: employee.shift,
     });
     setEditEmployeeId(employee.id);
     setIsEditingEmployee(true);
@@ -104,10 +105,20 @@ const EmployeeDirectory = () => {
   };
 
   const cancelForm = () => {
-    setNewEmployee({ name: "", position: "", department: "" });
+    setNewEmployee({ name: "", position: "", shift: 0 });
     setIsAddingEmployee(false);
     setIsEditingEmployee(false);
     setEditEmployeeId(null);
+  };
+
+  const getShiftName = (shift: number) => {
+    switch(shift) {
+      case 0: return "Без смены";
+      case 1: return "Смена 1";
+      case 2: return "Смена 2";
+      case 3: return "Смена 3";
+      default: return "Неизвестно";
+    }
   };
 
   return (
@@ -151,12 +162,21 @@ const EmployeeDirectory = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Отдел</label>
-                  <Input
-                    value={newEmployee.department}
-                    onChange={(e) => setNewEmployee({ ...newEmployee, department: e.target.value })}
-                    placeholder="Отдел продаж"
-                  />
+                  <label className="block text-sm font-medium mb-1">Смена</label>
+                  <Select
+                    value={newEmployee.shift?.toString()}
+                    onValueChange={(value) => setNewEmployee({ ...newEmployee, shift: parseInt(value) })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите смену" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">Без смены</SelectItem>
+                      <SelectItem value="1">Смена 1</SelectItem>
+                      <SelectItem value="2">Смена 2</SelectItem>
+                      <SelectItem value="3">Смена 3</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="flex justify-end space-x-2">
@@ -190,7 +210,7 @@ const EmployeeDirectory = () => {
                   <TableHead><User className="h-4 w-4" /></TableHead>
                   <TableHead>ФИО</TableHead>
                   <TableHead>Должность</TableHead>
-                  <TableHead>Отдел</TableHead>
+                  <TableHead>Смена</TableHead>
                   <TableHead className="text-right">Действия</TableHead>
                 </TableRow>
               </TableHeader>
@@ -205,7 +225,7 @@ const EmployeeDirectory = () => {
                       </TableCell>
                       <TableCell className="font-medium">{employee.name}</TableCell>
                       <TableCell>{employee.position}</TableCell>
-                      <TableCell>{employee.department}</TableCell>
+                      <TableCell>{getShiftName(employee.shift)}</TableCell>
                       <TableCell className="text-right">
                         <Button 
                           variant="ghost" 
