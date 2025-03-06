@@ -1,17 +1,17 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DollarSign, PieChart, ArrowUpRight, ArrowDownRight, Clock, Users, Settings } from "lucide-react";
-import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from "recharts";
 import { Link } from "react-router-dom";
+import { Clock, Users, CalendarClock, ClipboardList, BarChart, ArrowUpRight, ArrowDownRight } from "lucide-react";
 
 const data = [
-  { name: "Jan", value: 2400 },
-  { name: "Feb", value: 1398 },
-  { name: "Mar", value: 9800 },
-  { name: "Apr", value: 3908 },
-  { name: "May", value: 4800 },
-  { name: "Jun", value: 3800 },
+  { name: "Янв", actual: 152, norm: 168 },
+  { name: "Фев", actual: 148, norm: 160 },
+  { name: "Мар", actual: 175, norm: 184 },
+  { name: "Апр", actual: 162, norm: 168 },
+  { name: "Май", actual: 155, norm: 168 },
+  { name: "Июн", actual: 168, norm: 176 },
 ];
 
 const Index = () => {
@@ -32,11 +32,11 @@ const Index = () => {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="glass-card p-6">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Общее количество сотрудников</p>
+              <p className="text-sm text-muted-foreground">Сотрудников</p>
               <h2 className="text-2xl font-bold">25</h2>
             </div>
             <div className="p-2 bg-blue-100 rounded-full">
@@ -45,7 +45,7 @@ const Index = () => {
           </div>
           <div className="mt-4">
             <Button variant="outline" size="sm" asChild>
-              <Link to="/employee-settings">Управление сотрудниками</Link>
+              <Link to="/employee-directory">Перейти к справочнику</Link>
             </Button>
           </div>
         </Card>
@@ -70,8 +70,25 @@ const Index = () => {
         <Card className="glass-card p-6">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm text-muted-foreground">Среднее время простоя</p>
-              <h2 className="text-2xl font-bold">1.2 ч/день</h2>
+              <p className="text-sm text-muted-foreground">Доп. работ за месяц</p>
+              <h2 className="text-2xl font-bold">42</h2>
+            </div>
+            <div className="p-2 bg-purple-100 rounded-full">
+              <ClipboardList className="h-4 w-4 text-purple-600" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/additional-work">Журнал доп. работ</Link>
+            </Button>
+          </div>
+        </Card>
+
+        <Card className="glass-card p-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Простои</p>
+              <h2 className="text-2xl font-bold">1.4 ч/день</h2>
             </div>
             <div className="p-2 bg-red-100 rounded-full">
               <ArrowDownRight className="h-4 w-4 text-red-600" />
@@ -91,15 +108,25 @@ const Index = () => {
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" stroke="#888888" />
                 <YAxis stroke="#888888" />
                 <Tooltip />
+                <Legend />
                 <Line
                   type="monotone"
-                  dataKey="value"
+                  dataKey="actual"
+                  name="Фактические часы"
                   stroke="#8989DE"
                   strokeWidth={2}
-                  dot={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="norm"
+                  name="Нормативные часы"
+                  stroke="#82ca9d"
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -116,15 +143,27 @@ const Index = () => {
               </Link>
             </Button>
             <Button className="w-full justify-start" variant="outline" asChild>
-              <Link to="/employee-settings">
-                <Settings className="mr-2 h-4 w-4" />
-                Настройка норм времени
+              <Link to="/employee-directory">
+                <Users className="mr-2 h-4 w-4" />
+                Справочник сотрудников
+              </Link>
+            </Button>
+            <Button className="w-full justify-start" variant="outline" asChild>
+              <Link to="/time-sheet">
+                <CalendarClock className="mr-2 h-4 w-4" />
+                Табель учета
+              </Link>
+            </Button>
+            <Button className="w-full justify-start" variant="outline" asChild>
+              <Link to="/additional-work">
+                <ClipboardList className="mr-2 h-4 w-4" />
+                Журнал доп. работ
               </Link>
             </Button>
             <Button className="w-full justify-start" variant="outline" asChild>
               <Link to="/analytics">
-                <PieChart className="mr-2 h-4 w-4" />
-                Просмотр аналитики
+                <BarChart className="mr-2 h-4 w-4" />
+                Аналитика
               </Link>
             </Button>
           </div>

@@ -1,60 +1,59 @@
-import { Home, PieChart, Settings, User, CreditCard, Bell } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Link, useLocation } from "react-router-dom";
 
-const menuItems = [
-  { icon: Home, label: "Dashboard", path: "/" },
-  { icon: PieChart, label: "Analytics", path: "/analytics" },
-  { icon: CreditCard, label: "Transactions", path: "/transactions" },
-  { icon: Bell, label: "Notifications", path: "/notifications" },
-  { icon: User, label: "Profile", path: "/profile" },
-  { icon: Settings, label: "Settings", path: "/settings" },
+import { Link, useLocation } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { Home, Clock, Users, CalendarClock, ClipboardList, BarChart } from "lucide-react";
+
+type SidebarItem = {
+  title: string;
+  href: string;
+  icon: React.ElementType;
+};
+
+const mainItems: SidebarItem[] = [
+  { title: "Главная", href: "/", icon: Home },
+  { title: "Сотрудники", href: "/employee-directory", icon: Users },
+  { title: "Табель учета", href: "/time-sheet", icon: CalendarClock },
+  { title: "Доп. работы", href: "/additional-work", icon: ClipboardList },
+  { title: "Учет времени", href: "/time-tracking", icon: Clock },
+  { title: "Аналитика", href: "/analytics", icon: BarChart },
 ];
 
 const Sidebar = () => {
   const location = useLocation();
 
   return (
-    <div className="fixed left-0 top-0 h-full w-64 glass-card border-r border-white/10">
-      <div className="flex flex-col h-full">
-        <div className="p-6">
-          <h2 className="text-2xl font-bold text-primary">Finance</h2>
-        </div>
-        
-        <nav className="flex-1 px-4">
-          <ul className="space-y-2">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              
-              return (
-                <li key={item.path}>
-                  <Link
-                    to={item.path}
-                    className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
-                      "hover:bg-white/10",
-                      isActive ? "bg-white/10" : "text-secondary"
-                    )}
-                  >
-                    <Icon className="h-5 w-5" />
-                    <span>{item.label}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-
-        <div className="p-4 mt-auto">
-          <div className="flex items-center gap-3 px-4 py-3">
-            <User className="h-8 w-8 rounded-full bg-accent p-1" />
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">John Doe</span>
-              <span className="text-xs text-secondary">Premium User</span>
-            </div>
-          </div>
-        </div>
+    <div className="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border py-4 flex flex-col overflow-hidden">
+      <div className="px-4">
+        <h1 className="text-2xl font-bold text-primary">TimeTracker</h1>
+        <p className="text-sm text-muted-foreground">Система учета рабочего времени</p>
+      </div>
+      
+      <nav className="mt-8 flex-1 px-2 space-y-1">
+        {mainItems.map((item) => (
+          <Link
+            key={item.href}
+            to={item.href}
+            className={cn(
+              "flex items-center px-2 py-2 text-sm font-medium rounded-md",
+              location.pathname === item.href
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <item.icon className="mr-3 h-5 w-5" />
+            {item.title}
+          </Link>
+        ))}
+      </nav>
+      
+      <div className="px-4 py-2 border-t border-border">
+        <Link
+          to="/employee-settings"
+          className="flex items-center px-2 py-2 text-sm font-medium rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <Users className="mr-3 h-5 w-5" />
+          Настройки учета
+        </Link>
       </div>
     </div>
   );

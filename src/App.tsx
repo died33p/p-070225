@@ -7,12 +7,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Index from "./pages/Index";
 import Analytics from "./pages/Analytics";
-import Transactions from "./pages/Transactions";
-import Notifications from "./pages/Notifications";
-import Profile from "./pages/Profile";
-import Settings from "./pages/Settings";
 import TimeTracking from "./pages/TimeTracking";
 import EmployeeSettings from "./pages/EmployeeSettings";
+import EmployeeDirectory from "./pages/EmployeeDirectory";
+import TimeSheet from "./pages/TimeSheet";
+import AdditionalWorkJournal from "./pages/AdditionalWorkJournal";
 
 const queryClient = new QueryClient();
 
@@ -29,12 +28,11 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/analytics" element={<Analytics />} />
-                <Route path="/transactions" element={<Transactions />} />
-                <Route path="/notifications" element={<Notifications />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/settings" element={<Settings />} />
                 <Route path="/time-tracking" element={<TimeTracking />} />
                 <Route path="/employee-settings" element={<EmployeeSettings />} />
+                <Route path="/employee-directory" element={<EmployeeDirectory />} />
+                <Route path="/time-sheet" element={<TimeSheet />} />
+                <Route path="/additional-work" element={<AdditionalWorkJournal />} />
               </Routes>
             </div>
           </main>
