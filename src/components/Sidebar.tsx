@@ -14,7 +14,6 @@ const mainItems: SidebarItem[] = [
   { title: "Сотрудники", href: "/employee-directory", icon: Users },
   { title: "Табель учета", href: "/time-sheet", icon: CalendarClock },
   { title: "Доп. работы", href: "/additional-work", icon: ClipboardList },
-  { title: "Учет времени", href: "/time-tracking", icon: Clock },
   { title: "Аналитика", href: "/analytics", icon: BarChart },
 ];
 

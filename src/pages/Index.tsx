@@ -24,9 +24,9 @@ const Index = () => {
         </div>
         <div className="flex items-center space-x-4">
           <Button className="glass-card px-4 py-2 rounded-lg hover-scale" asChild>
-            <Link to="/time-tracking">
+            <Link to="/analytics">
               <Clock className="h-5 w-5 mr-2" />
-              Учет времени
+              Аналитика и учет
             </Link>
           </Button>
         </div>
@@ -96,7 +96,7 @@ const Index = () => {
           </div>
           <div className="mt-4">
             <Button variant="outline" size="sm" asChild>
-              <Link to="/time-tracking">Детали учета</Link>
+              <Link to="/analytics?tab=timetracking">Детали учета</Link>
             </Button>
           </div>
         </Card>
@@ -137,7 +137,7 @@ const Index = () => {
           <h3 className="text-lg font-semibold mb-4">Быстрые действия</h3>
           <div className="space-y-4">
             <Button className="w-full justify-start" asChild>
-              <Link to="/time-tracking">
+              <Link to="/analytics?tab=timetracking">
                 <Clock className="mr-2 h-4 w-4" />
                 Учет рабочего времени
               </Link>
