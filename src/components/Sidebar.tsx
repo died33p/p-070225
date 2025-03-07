@@ -49,9 +49,6 @@ const Sidebar = () => {
       </nav>
       
       <div className="px-4 py-2 border-t border-border">
-        <div className="mb-2 px-2 text-xs font-semibold text-muted-foreground">
-          НАСТРОЙКИ
-        </div>
         {settingsItems.map((item) => (
           <Link
             key={item.href}
