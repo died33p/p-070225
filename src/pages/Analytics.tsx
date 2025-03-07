@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -19,8 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { format } from "date-fns";
+import { format, subDays, subMonths, isWithinInterval, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns";
 import { ru } from "date-fns/locale";
+import { useToast } from "@/components/ui/use-toast";
 
 // Sample employees
 const employees = [
@@ -29,144 +30,261 @@ const employees = [
   { id: "3", name: "Сидорова Анна Михайловна" },
 ];
 
-// Sample analytics data - we'll filter these based on selections
+// Sample analytics data
 const fullMonthlyData = [
-  { month: "Янв", normHours: 168, actualHours: 152, breakHours: 21, additionalHours: 8, idleHours: 24, employeeId: "1" },
-  { month: "Фев", normHours: 160, actualHours: 148, breakHours: 20, additionalHours: 5, idleHours: 17, employeeId: "1" },
-  { month: "Мар", normHours: 184, actualHours: 175, breakHours: 23, additionalHours: 10, idleHours: 19, employeeId: "1" },
-  { month: "Апр", normHours: 168, actualHours: 162, breakHours: 21, additionalHours: 12, idleHours: 18, employeeId: "1" },
-  { month: "Май", normHours: 168, actualHours: 155, breakHours: 21, additionalHours: 7, idleHours: 20, employeeId: "1" },
-  { month: "Июн", normHours: 176, actualHours: 168, breakHours: 22, additionalHours: 9, idleHours: 17, employeeId: "1" },
-  { month: "Янв", normHours: 168, actualHours: 142, breakHours: 25, additionalHours: 5, idleHours: 28, employeeId: "2" },
-  { month: "Фев", normHours: 160, actualHours: 138, breakHours: 22, additionalHours: 4, idleHours: 20, employeeId: "2" },
-  { month: "Мар", normHours: 184, actualHours: 165, breakHours: 26, additionalHours: 8, idleHours: 23, employeeId: "2" },
-  { month: "Апр", normHours: 168, actualHours: 150, breakHours: 24, additionalHours: 10, idleHours: 22, employeeId: "2" },
-  { month: "Май", normHours: 168, actualHours: 145, breakHours: 23, additionalHours: 6, idleHours: 24, employeeId: "2" },
-  { month: "Июн", normHours: 176, actualHours: 160, breakHours: 25, additionalHours: 7, idleHours: 20, employeeId: "2" },
-  { month: "Янв", normHours: 168, actualHours: 160, breakHours: 18, additionalHours: 9, idleHours: 19, employeeId: "3" },
-  { month: "Фев", normHours: 160, actualHours: 155, breakHours: 17, additionalHours: 7, idleHours: 15, employeeId: "3" },
-  { month: "Мар", normHours: 184, actualHours: 180, breakHours: 20, additionalHours: 12, idleHours: 16, employeeId: "3" },
-  { month: "Апр", normHours: 168, actualHours: 165, breakHours: 19, additionalHours: 14, idleHours: 16, employeeId: "3" },
-  { month: "Май", normHours: 168, actualHours: 160, breakHours: 19, additionalHours: 8, idleHours: 17, employeeId: "3" },
-  { month: "Июн", normHours: 176, actualHours: 172, breakHours: 20, additionalHours: 10, idleHours: 14, employeeId: "3" },
+  { month: "Янв", date: "2023-01-15", normHours: 168, actualHours: 152, breakHours: 21, additionalHours: 8, idleHours: 24, employeeId: "1" },
+  { month: "Фев", date: "2023-02-15", normHours: 160, actualHours: 148, breakHours: 20, additionalHours: 5, idleHours: 17, employeeId: "1" },
+  { month: "Мар", date: "2023-03-15", normHours: 184, actualHours: 175, breakHours: 23, additionalHours: 10, idleHours: 19, employeeId: "1" },
+  { month: "Апр", date: "2023-04-15", normHours: 168, actualHours: 162, breakHours: 21, additionalHours: 12, idleHours: 18, employeeId: "1" },
+  { month: "Май", date: "2023-05-15", normHours: 168, actualHours: 155, breakHours: 21, additionalHours: 7, idleHours: 20, employeeId: "1" },
+  { month: "Июн", date: "2023-06-15", normHours: 176, actualHours: 168, breakHours: 22, additionalHours: 9, idleHours: 17, employeeId: "1" },
+  { month: "Янв", date: "2023-01-15", normHours: 168, actualHours: 142, breakHours: 25, additionalHours: 5, idleHours: 28, employeeId: "2" },
+  { month: "Фев", date: "2023-02-15", normHours: 160, actualHours: 138, breakHours: 22, additionalHours: 4, idleHours: 20, employeeId: "2" },
+  { month: "Мар", date: "2023-03-15", normHours: 184, actualHours: 165, breakHours: 26, additionalHours: 8, idleHours: 23, employeeId: "2" },
+  { month: "Апр", date: "2023-04-15", normHours: 168, actualHours: 150, breakHours: 24, additionalHours: 10, idleHours: 22, employeeId: "2" },
+  { month: "Май", date: "2023-05-15", normHours: 168, actualHours: 145, breakHours: 23, additionalHours: 6, idleHours: 24, employeeId: "2" },
+  { month: "Июн", date: "2023-06-15", normHours: 176, actualHours: 160, breakHours: 25, additionalHours: 7, idleHours: 20, employeeId: "2" },
+  { month: "Янв", date: "2023-01-15", normHours: 168, actualHours: 160, breakHours: 18, additionalHours: 9, idleHours: 19, employeeId: "3" },
+  { month: "Фев", date: "2023-02-15", normHours: 160, actualHours: 155, breakHours: 17, additionalHours: 7, idleHours: 15, employeeId: "3" },
+  { month: "Мар", date: "2023-03-15", normHours: 184, actualHours: 180, breakHours: 20, additionalHours: 12, idleHours: 16, employeeId: "3" },
+  { month: "Апр", date: "2023-04-15", normHours: 168, actualHours: 165, breakHours: 19, additionalHours: 14, idleHours: 16, employeeId: "3" },
+  { month: "Май", date: "2023-05-15", normHours: 168, actualHours: 160, breakHours: 19, additionalHours: 8, idleHours: 17, employeeId: "3" },
+  { month: "Июн", date: "2023-06-15", normHours: 176, actualHours: 172, breakHours: 20, additionalHours: 10, idleHours: 14, employeeId: "3" },
 ];
 
-// Sample daily work time data - to be filtered by employee and date
+// Sample daily work time data with actual dates
 const dailyWorkTimeData = [
-  { date: "01.06.2023", startTime: "08:00", endTime: "17:00", breaks: 60, idle: 45, employeeId: "1" },
-  { date: "02.06.2023", startTime: "08:30", endTime: "17:30", breaks: 45, idle: 30, employeeId: "1" },
-  { date: "03.06.2023", startTime: "08:15", endTime: "17:15", breaks: 50, idle: 35, employeeId: "1" },
-  { date: "01.06.2023", startTime: "09:00", endTime: "18:00", breaks: 70, idle: 60, employeeId: "2" },
-  { date: "02.06.2023", startTime: "09:30", endTime: "18:30", breaks: 65, idle: 50, employeeId: "2" },
-  { date: "03.06.2023", startTime: "09:15", endTime: "18:15", breaks: 55, idle: 40, employeeId: "2" },
-  { date: "01.06.2023", startTime: "08:00", endTime: "17:00", breaks: 40, idle: 25, employeeId: "3" },
-  { date: "02.06.2023", startTime: "08:30", endTime: "17:30", breaks: 35, idle: 20, employeeId: "3" },
-  { date: "03.06.2023", startTime: "08:15", endTime: "17:15", breaks: 30, idle: 15, employeeId: "3" },
+  { date: "2023-06-01", displayDate: "01.06.2023", startTime: "08:00", endTime: "17:00", breaks: 60, idle: 45, employeeId: "1" },
+  { date: "2023-06-02", displayDate: "02.06.2023", startTime: "08:30", endTime: "17:30", breaks: 45, idle: 30, employeeId: "1" },
+  { date: "2023-06-03", displayDate: "03.06.2023", startTime: "08:15", endTime: "17:15", breaks: 50, idle: 35, employeeId: "1" },
+  { date: "2023-06-04", displayDate: "04.06.2023", startTime: "08:00", endTime: "17:00", breaks: 55, idle: 40, employeeId: "1" },
+  { date: "2023-06-05", displayDate: "05.06.2023", startTime: "08:20", endTime: "17:20", breaks: 50, idle: 35, employeeId: "1" },
+  { date: "2023-06-01", displayDate: "01.06.2023", startTime: "09:00", endTime: "18:00", breaks: 70, idle: 60, employeeId: "2" },
+  { date: "2023-06-02", displayDate: "02.06.2023", startTime: "09:30", endTime: "18:30", breaks: 65, idle: 50, employeeId: "2" },
+  { date: "2023-06-03", displayDate: "03.06.2023", startTime: "09:15", endTime: "18:15", breaks: 55, idle: 40, employeeId: "2" },
+  { date: "2023-06-04", displayDate: "04.06.2023", startTime: "09:00", endTime: "18:00", breaks: 60, idle: 45, employeeId: "2" },
+  { date: "2023-06-05", displayDate: "05.06.2023", startTime: "09:10", endTime: "18:10", breaks: 60, idle: 50, employeeId: "2" },
+  { date: "2023-06-01", displayDate: "01.06.2023", startTime: "08:00", endTime: "17:00", breaks: 40, idle: 25, employeeId: "3" },
+  { date: "2023-06-02", displayDate: "02.06.2023", startTime: "08:30", endTime: "17:30", breaks: 35, idle: 20, employeeId: "3" },
+  { date: "2023-06-03", displayDate: "03.06.2023", startTime: "08:15", endTime: "17:15", breaks: 30, idle: 15, employeeId: "3" },
+  { date: "2023-06-04", displayDate: "04.06.2023", startTime: "08:00", endTime: "17:00", breaks: 35, idle: 20, employeeId: "3" },
+  { date: "2023-06-05", displayDate: "05.06.2023", startTime: "08:10", endTime: "17:10", breaks: 30, idle: 15, employeeId: "3" },
 ];
 
-// Sample employee performance data - also to be filtered
-const fullEmployeePerformance = [
-  { name: "Иванов И.И.", efficiency: 92, normCompletion: 88, idlePercent: 8, employeeId: "1" },
-  { name: "Петров П.П.", efficiency: 85, normCompletion: 79, idlePercent: 15, employeeId: "2" },
-  { name: "Сидорова А.М.", efficiency: 95, normCompletion: 92, idlePercent: 5, employeeId: "3" },
-];
-
-// Create a mapping between employee IDs and their time distribution data
-const timeDistributionByEmployee = {
+// Sample weekly statistics data
+const weeklyStatsByEmployee = {
   "1": [
-    { name: "Фактическое время", value: 152 },
-    { name: "Перерывы", value: 21 },
-    { name: "Доп. работы", value: 8 },
-    { name: "Простои", value: 24 },
+    { day: "Пн", date: "2023-06-05", hours: 8.5, normHours: 8 },
+    { day: "Вт", date: "2023-06-06", hours: 7.8, normHours: 8 },
+    { day: "Ср", date: "2023-06-07", hours: 8.2, normHours: 8 },
+    { day: "Чт", date: "2023-06-08", hours: 8.0, normHours: 8 },
+    { day: "Пт", date: "2023-06-09", hours: 7.5, normHours: 8 },
   ],
   "2": [
-    { name: "Фактическое время", value: 142 },
-    { name: "Перерывы", value: 25 },
-    { name: "Доп. работы", value: 5 },
-    { name: "Простои", value: 28 },
+    { day: "Пн", date: "2023-06-05", hours: 7.0, normHours: 8 },
+    { day: "Вт", date: "2023-06-06", hours: 7.5, normHours: 8 },
+    { day: "Ср", date: "2023-06-07", hours: 7.8, normHours: 8 },
+    { day: "Чт", date: "2023-06-08", hours: 7.2, normHours: 8 },
+    { day: "Пт", date: "2023-06-09", hours: 7.0, normHours: 8 },
   ],
   "3": [
-    { name: "Фактическое время", value: 160 },
-    { name: "Перерывы", value: 18 },
-    { name: "Доп. работы", value: 9 },
-    { name: "Простои", value: 19 },
+    { day: "Пн", date: "2023-06-05", hours: 8.2, normHours: 8 },
+    { day: "Вт", date: "2023-06-06", hours: 8.5, normHours: 8 },
+    { day: "Ср", date: "2023-06-07", hours: 8.4, normHours: 8 },
+    { day: "Чт", date: "2023-06-08", hours: 8.3, normHours: 8 },
+    { day: "Пт", date: "2023-06-09", hours: 8.0, normHours: 8 },
   ],
   "all": [
-    { name: "Фактическое время", value: 152 },
-    { name: "Перерывы", value: 21 },
-    { name: "Доп. работы", value: 8 },
-    { name: "Простои", value: 24 },
+    { day: "Пн", date: "2023-06-05", hours: 8.0, normHours: 8 },
+    { day: "Вт", date: "2023-06-06", hours: 8.0, normHours: 8 },
+    { day: "Ср", date: "2023-06-07", hours: 8.0, normHours: 8 },
+    { day: "Чт", date: "2023-06-08", hours: 8.0, normHours: 8 },
+    { day: "Пт", date: "2023-06-09", hours: 7.5, normHours: 8 },
+  ]
+};
+
+// Sample employee performance data with dates
+const fullEmployeePerformance = [
+  { name: "Иванов И.И.", efficiency: 92, normCompletion: 88, idlePercent: 8, employeeId: "1", date: "2023-06-15" },
+  { name: "Петров П.П.", efficiency: 85, normCompletion: 79, idlePercent: 15, employeeId: "2", date: "2023-06-15" },
+  { name: "Сидорова А.М.", efficiency: 95, normCompletion: 92, idlePercent: 5, employeeId: "3", date: "2023-06-15" },
+];
+
+// Create time distribution data with dates
+const timeDistributionByEmployee = {
+  "1": [
+    { name: "Фактическое время", value: 152, date: "2023-06-15" },
+    { name: "Перерывы", value: 21, date: "2023-06-15" },
+    { name: "Доп. работы", value: 8, date: "2023-06-15" },
+    { name: "Простои", value: 24, date: "2023-06-15" },
+  ],
+  "2": [
+    { name: "Фактическое время", value: 142, date: "2023-06-15" },
+    { name: "Перерывы", value: 25, date: "2023-06-15" },
+    { name: "Доп. работы", value: 5, date: "2023-06-15" },
+    { name: "Простои", value: 28, date: "2023-06-15" },
+  ],
+  "3": [
+    { name: "Фактическое время", value: 160, date: "2023-06-15" },
+    { name: "Перерывы", value: 18, date: "2023-06-15" },
+    { name: "Доп. работы", value: 9, date: "2023-06-15" },
+    { name: "Простои", value: 19, date: "2023-06-15" },
+  ],
+  "all": [
+    { name: "Фактическое время", value: 152, date: "2023-06-15" },
+    { name: "Перерывы", value: 21, date: "2023-06-15" },
+    { name: "Доп. работы", value: 8, date: "2023-06-15" },
+    { name: "Простои", value: 24, date: "2023-06-15" },
   ],
 };
 
-// Weekly statistics for each employee
-const weeklyStatsByEmployee = {
+// Sample additional work data
+const additionalWorkData = {
   "1": [
-    { day: "Пн", hours: 8.5, normHours: 8 },
-    { day: "Вт", hours: 7.8, normHours: 8 },
-    { day: "Ср", hours: 8.2, normHours: 8 },
-    { day: "Чт", hours: 8.0, normHours: 8 },
-    { day: "Пт", hours: 7.5, normHours: 8 },
+    { type: "Уборка", description: "Уборка рабочего места после смены", hours: 0.5, date: "2023-06-01" },
+    { type: "Помощь коллеге", description: "Помощь в настройке оборудования", hours: 0.75, date: "2023-06-01" },
+    { type: "Ремонт", description: "Мелкий ремонт оборудования", hours: 1.0, date: "2023-06-02" },
   ],
   "2": [
-    { day: "Пн", hours: 7.0, normHours: 8 },
-    { day: "Вт", hours: 7.5, normHours: 8 },
-    { day: "Ср", hours: 7.8, normHours: 8 },
-    { day: "Чт", hours: 7.2, normHours: 8 },
-    { day: "Пт", hours: 7.0, normHours: 8 },
+    { type: "Уборка", description: "Уборка рабочего места после смены", hours: 0.5, date: "2023-06-01" },
+    { type: "Инвентаризация", description: "Участие в инвентаризации", hours: 1.2, date: "2023-06-03" },
   ],
   "3": [
-    { day: "Пн", hours: 8.2, normHours: 8 },
-    { day: "Вт", hours: 8.5, normHours: 8 },
-    { day: "Ср", hours: 8.4, normHours: 8 },
-    { day: "Чт", hours: 8.3, normHours: 8 },
-    { day: "Пт", hours: 8.0, normHours: 8 },
-  ],
-  "all": [
-    { day: "Пн", hours: 8.0, normHours: 8 },
-    { day: "Вт", hours: 8.0, normHours: 8 },
-    { day: "Ср", hours: 8.0, normHours: 8 },
-    { day: "Чт", hours: 8.0, normHours: 8 },
-    { day: "Пт", hours: 7.5, normHours: 8 },
+    { type: "Уборка", description: "Уборка рабочего места после смены", hours: 0.5, date: "2023-06-01" },
+    { type: "Обучение", description: "Прохождение онлайн-курса по ТБ", hours: 1.5, date: "2023-06-02" },
+    { type: "Встреча", description: "Участие в планерке", hours: 0.75, date: "2023-06-03" },
   ]
 };
 
 const COLORS = ['#0088FE', '#8884D8', '#FFBB28', '#FF8042'];
 
 const Analytics = () => {
+  const { toast } = useToast();
   const [selectedEmployee, setSelectedEmployee] = useState("all");
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [date, setDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [isCustomPeriod, setIsCustomPeriod] = useState(false);
 
-  // Filter data based on employee selection
-  const filteredMonthlyData = selectedEmployee === "all" 
-    ? fullMonthlyData 
-    : fullMonthlyData.filter(item => item.employeeId === selectedEmployee);
+  // Define date range based on selected period
+  const getDateRange = useMemo(() => {
+    let start: Date, end: Date;
+    
+    if (isCustomPeriod) {
+      start = date;
+      end = endDate;
+    } else {
+      switch (selectedPeriod) {
+        case "day":
+          start = date;
+          end = date;
+          break;
+        case "week":
+          start = startOfWeek(date, { weekStartsOn: 1 });
+          end = endOfWeek(date, { weekStartsOn: 1 });
+          break;
+        case "month":
+          start = startOfMonth(date);
+          end = endOfMonth(date);
+          break;
+        case "year":
+          start = startOfYear(date);
+          end = endOfYear(date);
+          break;
+        default:
+          start = date;
+          end = date;
+      }
+    }
+    
+    return { start, end };
+  }, [date, endDate, selectedPeriod, isCustomPeriod]);
 
-  // Get performance data for selected employee
-  const filteredPerformanceData = selectedEmployee === "all"
-    ? fullEmployeePerformance
-    : fullEmployeePerformance.filter(item => item.employeeId === selectedEmployee);
+  // Filter data based on employee selection and date range
+  const filteredMonthlyData = useMemo(() => {
+    // First filter by employee
+    const employeeFiltered = selectedEmployee === "all" 
+      ? fullMonthlyData 
+      : fullMonthlyData.filter(item => item.employeeId === selectedEmployee);
+    
+    // Then filter by date range
+    return employeeFiltered.filter(item => {
+      const itemDate = parseISO(item.date);
+      return isWithinInterval(itemDate, { start: getDateRange.start, end: getDateRange.end });
+    });
+  }, [selectedEmployee, getDateRange]);
+
+  // Get performance data for selected employee and date range
+  const filteredPerformanceData = useMemo(() => {
+    // First filter by employee
+    const employeeFiltered = selectedEmployee === "all"
+      ? fullEmployeePerformance
+      : fullEmployeePerformance.filter(item => item.employeeId === selectedEmployee);
+    
+    // Then filter by date range
+    return employeeFiltered.filter(item => {
+      const itemDate = parseISO(item.date);
+      return isWithinInterval(itemDate, { start: getDateRange.start, end: getDateRange.end });
+    });
+  }, [selectedEmployee, getDateRange]);
 
   // Get time distribution data for selected employee
-  const timeDistributionData = timeDistributionByEmployee[selectedEmployee] || timeDistributionByEmployee["all"];
+  const timeDistributionData = useMemo(() => {
+    const distributionData = timeDistributionByEmployee[selectedEmployee] || timeDistributionByEmployee["all"];
+    
+    // Filter by date range
+    return distributionData.filter(item => {
+      const itemDate = parseISO(item.date);
+      return isWithinInterval(itemDate, { start: getDateRange.start, end: getDateRange.end });
+    });
+  }, [selectedEmployee, getDateRange]);
 
-  // Get weekly stats for selected employee
-  const weeklyStats = weeklyStatsByEmployee[selectedEmployee] || weeklyStatsByEmployee["all"];
+  // Get weekly stats for selected employee and date range
+  const filteredWeeklyStats = useMemo(() => {
+    const weeklyData = weeklyStatsByEmployee[selectedEmployee] || weeklyStatsByEmployee["all"];
+    
+    // Filter by date range
+    return weeklyData.filter(item => {
+      const itemDate = parseISO(item.date);
+      return isWithinInterval(itemDate, { start: getDateRange.start, end: getDateRange.end });
+    });
+  }, [selectedEmployee, getDateRange]);
 
-  // Get daily work data for selected employee
-  const filteredDailyData = selectedEmployee === "all"
-    ? dailyWorkTimeData
-    : dailyWorkTimeData.filter(item => item.employeeId === selectedEmployee);
+  // Get daily work data for selected employee and date range
+  const filteredDailyData = useMemo(() => {
+    // First filter by employee
+    const employeeFiltered = selectedEmployee === "all"
+      ? dailyWorkTimeData
+      : dailyWorkTimeData.filter(item => item.employeeId === selectedEmployee);
+    
+    // Then filter by date range
+    return employeeFiltered.filter(item => {
+      const itemDate = parseISO(item.date);
+      return isWithinInterval(itemDate, { start: getDateRange.start, end: getDateRange.end });
+    });
+  }, [selectedEmployee, getDateRange]);
+
+  // Get additional work data for selected employee and date range
+  const filteredAdditionalWork = useMemo(() => {
+    if (selectedEmployee === "all") return [];
+    
+    const employeeWorks = additionalWorkData[selectedEmployee] || [];
+    
+    // Filter by date range
+    return employeeWorks.filter(item => {
+      const itemDate = parseISO(item.date);
+      return isWithinInterval(itemDate, { start: getDateRange.start, end: getDateRange.end });
+    });
+  }, [selectedEmployee, getDateRange]);
 
   // Calculate percentages for time distribution
-  const totalTime = timeDistributionData.reduce((sum, item) => sum + item.value, 0);
-  const timePercentages = timeDistributionData.map(item => ({
-    name: item.name,
-    percentage: Math.round((item.value / totalTime) * 100)
-  }));
+  const timePercentages = useMemo(() => {
+    const totalTime = timeDistributionData.reduce((sum, item) => sum + item.value, 0);
+    return timeDistributionData.map(item => ({
+      name: item.name,
+      percentage: totalTime > 0 ? Math.round((item.value / totalTime) * 100) : 0
+    }));
+  }, [timeDistributionData]);
 
   const formatDate = (date: Date) => {
     return format(date, 'dd MMMM yyyy', { locale: ru });
@@ -175,10 +293,24 @@ const Analytics = () => {
   const handlePeriodChange = (period: string) => {
     setSelectedPeriod(period);
     setIsCustomPeriod(period === "custom");
+    
+    // Show toast to confirm filter change
+    toast({
+      title: "Фильтр изменен",
+      description: `Выбран период: ${period === "custom" ? "Произвольный период" : period}`,
+    });
+  };
+
+  // Apply filters button handler
+  const applyFilters = () => {
+    toast({
+      title: "Фильтры применены",
+      description: `Период: ${selectedPeriod}, Сотрудник: ${selectedEmployee === "all" ? "Все" : employees.find(e => e.id === selectedEmployee)?.name}`,
+    });
   };
 
   // Summary cards - showing key metrics based on filtered data
-  const summaryMetrics = {
+  const summaryMetrics = useMemo(() => ({
     efficiency: filteredPerformanceData.length > 0 
       ? Math.round(filteredPerformanceData.reduce((sum, item) => sum + item.efficiency, 0) / filteredPerformanceData.length) 
       : 0,
@@ -191,7 +323,7 @@ const Analytics = () => {
     avgHours: filteredMonthlyData.length > 0 
       ? Math.round(filteredMonthlyData.reduce((sum, item) => sum + item.actualHours, 0) / filteredMonthlyData.length) 
       : 0
-  };
+  }), [filteredPerformanceData, filteredMonthlyData]);
 
   return (
     <div className="space-y-8">
@@ -208,7 +340,13 @@ const Analytics = () => {
               <label className="block text-sm font-medium mb-1">Сотрудник</label>
               <Select 
                 value={selectedEmployee} 
-                onValueChange={setSelectedEmployee}
+                onValueChange={(value) => {
+                  setSelectedEmployee(value);
+                  toast({
+                    title: "Выбран сотрудник",
+                    description: value === "all" ? "Все сотрудники" : employees.find(e => e.id === value)?.name,
+                  });
+                }}
               >
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Выберите сотрудника" />
@@ -281,7 +419,15 @@ const Analytics = () => {
                     <Calendar
                       mode="single"
                       selected={date}
-                      onSelect={(date) => date && setDate(date)}
+                      onSelect={(newDate) => {
+                        if (newDate) {
+                          setDate(newDate);
+                          toast({
+                            title: "Дата изменена",
+                            description: formatDate(newDate),
+                          });
+                        }
+                      }}
                       initialFocus
                       className="p-3 pointer-events-auto"
                     />
@@ -309,7 +455,7 @@ const Analytics = () => {
                       <Calendar
                         mode="single"
                         selected={date}
-                        onSelect={(date) => date && setDate(date)}
+                        onSelect={(newDate) => newDate && setDate(newDate)}
                         initialFocus
                         className="p-3 pointer-events-auto"
                       />
@@ -332,7 +478,7 @@ const Analytics = () => {
                       <Calendar
                         mode="single"
                         selected={endDate}
-                        onSelect={(date) => date && setEndDate(date)}
+                        onSelect={(newDate) => newDate && setEndDate(newDate)}
                         initialFocus
                         className="p-3 pointer-events-auto"
                       />
@@ -341,6 +487,10 @@ const Analytics = () => {
                 </div>
               </div>
             )}
+            
+            <Button onClick={applyFilters} className="ml-auto">
+              Применить фильтры
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -392,6 +542,7 @@ const Analytics = () => {
             Эффективность использования рабочего времени
             <span className="ml-auto text-sm text-muted-foreground">
               {selectedEmployee === "all" ? "Все сотрудники" : employees.find(e => e.id === selectedEmployee)?.name}
+              {" - "}{formatDate(getDateRange.start)} - {formatDate(getDateRange.end)}
             </span>
           </CardTitle>
         </CardHeader>
@@ -421,13 +572,14 @@ const Analytics = () => {
             Недельная статистика рабочего времени
             <span className="ml-auto text-sm text-muted-foreground">
               {selectedEmployee === "all" ? "Все сотрудники" : employees.find(e => e.id === selectedEmployee)?.name}
+              {" - "}{formatDate(getDateRange.start)} - {formatDate(getDateRange.end)}
             </span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={weeklyStats}>
+              <BarChart data={filteredWeeklyStats}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="day" />
                 <YAxis />
@@ -450,6 +602,7 @@ const Analytics = () => {
               Распределение рабочего времени
               <span className="ml-auto text-sm text-muted-foreground">
                 {selectedEmployee === "all" ? "Все сотрудники" : employees.find(e => e.id === selectedEmployee)?.name}
+                {" - "}{formatDate(getDateRange.start)} - {formatDate(getDateRange.end)}
               </span>
             </CardTitle>
           </CardHeader>
@@ -485,6 +638,7 @@ const Analytics = () => {
               Процентное соотношение
               <span className="ml-auto text-sm text-muted-foreground">
                 {selectedEmployee === "all" ? "Все сотрудники" : employees.find(e => e.id === selectedEmployee)?.name}
+                {" - "}{formatDate(getDateRange.start)} - {formatDate(getDateRange.end)}
               </span>
             </CardTitle>
           </CardHeader>
@@ -522,6 +676,7 @@ const Analytics = () => {
             Сравнение показателей по сотрудникам
             <span className="ml-auto text-sm text-muted-foreground">
               {selectedEmployee === "all" ? "Все сотрудники" : employees.find(e => e.id === selectedEmployee)?.name}
+              {" - "}{formatDate(getDateRange.start)} - {formatDate(getDateRange.end)}
             </span>
           </CardTitle>
         </CardHeader>
@@ -551,6 +706,7 @@ const Analytics = () => {
             Динамика распределения рабочего времени
             <span className="ml-auto text-sm text-muted-foreground">
               {selectedEmployee === "all" ? "Все сотрудники" : employees.find(e => e.id === selectedEmployee)?.name}
+              {" - "}{formatDate(getDateRange.start)} - {formatDate(getDateRange.end)}
             </span>
           </CardTitle>
         </CardHeader>
@@ -581,7 +737,7 @@ const Analytics = () => {
               Дополнительные работы
               <span className="ml-auto text-sm text-muted-foreground">
                 {employees.find(e => e.id === selectedEmployee)?.name || ""}
-                {" - "}{formatDate(date)}
+                {" - "}{formatDate(getDateRange.start)} - {formatDate(getDateRange.end)}
               </span>
             </CardTitle>
           </CardHeader>
@@ -595,23 +751,17 @@ const Analytics = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell>Уборка</TableCell>
-                  <TableCell>Уборка рабочего места после смены</TableCell>
-                  <TableCell className="text-right">0.5</TableCell>
-                </TableRow>
-                {selectedEmployee === "1" && (
+                {filteredAdditionalWork.length > 0 ? (
+                  filteredAdditionalWork.map((work, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{work.type}</TableCell>
+                      <TableCell>{work.description}</TableCell>
+                      <TableCell className="text-right">{work.hours}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
                   <TableRow>
-                    <TableCell>Помощь коллеге</TableCell>
-                    <TableCell>Помощь в настройке оборудования</TableCell>
-                    <TableCell className="text-right">0.75</TableCell>
-                  </TableRow>
-                )}
-                {selectedEmployee === "3" && (
-                  <TableRow>
-                    <TableCell>Обучение</TableCell>
-                    <TableCell>Прохождение онлайн-курса по ТБ</TableCell>
-                    <TableCell className="text-right">1.5</TableCell>
+                    <TableCell colSpan={3} className="text-center">Нет данных за выбранный период</TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -628,6 +778,7 @@ const Analytics = () => {
             Ежедневный учет рабочего времени
             <span className="ml-auto text-sm text-muted-foreground">
               {selectedEmployee === "all" ? "Все сотрудники" : employees.find(e => e.id === selectedEmployee)?.name}
+              {" - "}{formatDate(getDateRange.start)} - {formatDate(getDateRange.end)}
             </span>
           </CardTitle>
         </CardHeader>
@@ -644,24 +795,30 @@ const Analytics = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredDailyData.map((item, index) => {
-                // Calculate total hours
-                const start = new Date(`2023-01-01T${item.startTime}:00`);
-                const end = new Date(`2023-01-01T${item.endTime}:00`);
-                const totalMinutes = (end.getTime() - start.getTime()) / 60000 - item.breaks;
-                const totalHours = Math.round(totalMinutes / 6) / 10; // Round to 1 decimal
-                
-                return (
-                  <TableRow key={index}>
-                    <TableCell>{item.date}</TableCell>
-                    <TableCell>{item.startTime}</TableCell>
-                    <TableCell>{item.endTime}</TableCell>
-                    <TableCell>{item.breaks}</TableCell>
-                    <TableCell>{item.idle}</TableCell>
-                    <TableCell className="text-right">{totalHours}</TableCell>
-                  </TableRow>
-                );
-              })}
+              {filteredDailyData.length > 0 ? (
+                filteredDailyData.map((item, index) => {
+                  // Calculate total hours
+                  const start = new Date(`2023-01-01T${item.startTime}:00`);
+                  const end = new Date(`2023-01-01T${item.endTime}:00`);
+                  const totalMinutes = (end.getTime() - start.getTime()) / 60000 - item.breaks;
+                  const totalHours = Math.round(totalMinutes / 6) / 10; // Round to 1 decimal
+                  
+                  return (
+                    <TableRow key={index}>
+                      <TableCell>{item.displayDate}</TableCell>
+                      <TableCell>{item.startTime}</TableCell>
+                      <TableCell>{item.endTime}</TableCell>
+                      <TableCell>{item.breaks}</TableCell>
+                      <TableCell>{item.idle}</TableCell>
+                      <TableCell className="text-right">{totalHours}</TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center">Нет данных за выбранный период</TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
