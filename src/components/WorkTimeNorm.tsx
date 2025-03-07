@@ -2,10 +2,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Clock, Edit, Trash2 } from "lucide-react";
+import { DatePickerWithPresets } from "./DatePickerWithPresets";
 
 interface WorkTimeNormProps {
   employeeId: string;
@@ -33,14 +33,9 @@ const WorkTimeNorm = ({ employeeId, employeeName }: WorkTimeNormProps) => {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div>
+          <div className="space-y-2">
             <label className="block text-sm font-medium mb-1">Выберите дату</label>
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={setDate}
-              className="rounded-md border"
-            />
+            <DatePickerWithPresets date={date} setDate={setDate} />
           </div>
           
           <div className="md:col-span-2">

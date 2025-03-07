@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Settings, Clock } from "lucide-react";
 import WorkTimeNorm from "@/components/WorkTimeNorm";
+import { useToast } from "@/hooks/use-toast";
 
 const EmployeeSettings = () => {
+  const { toast } = useToast();
   const [selectedEmployee, setSelectedEmployee] = useState({
     id: "1",
     name: "Иванов Иван Иванович",
@@ -14,6 +16,13 @@ const EmployeeSettings = () => {
   
   const [breakTime, setBreakTime] = useState("1");
   
+  const handleSaveBreakTime = () => {
+    toast({
+      title: "Настройки сохранены",
+      description: `Время перерыва установлено: ${breakTime} ч.`,
+    });
+  };
+
   return (
     <div className="space-y-8">
       <header>
@@ -43,7 +52,7 @@ const EmployeeSettings = () => {
                   max="4"
                   step="0.25"
                 />
-                <Button>Сохранить</Button>
+                <Button onClick={handleSaveBreakTime}>Сохранить</Button>
               </div>
               <p className="text-sm text-muted-foreground mt-2">
                 Это время будет автоматически учитываться для всех сотрудников

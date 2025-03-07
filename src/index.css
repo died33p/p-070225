@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -42,4 +43,21 @@
 
 .hover-scale {
   @apply transition-transform duration-200 hover:scale-105;
+}
+
+.popover-solid {
+  @apply bg-popover !bg-opacity-100 shadow-lg;
+}
+
+/* Force solid backgrounds on popovers and drop-downs */
+[data-radix-popper-content-wrapper] {
+  @apply bg-popover !bg-opacity-100;
+}
+
+.rdp-popup {
+  @apply bg-background !bg-opacity-100 shadow-lg;
+}
+
+.toast-solid {
+  @apply bg-background !bg-opacity-100 shadow-lg;
 }
