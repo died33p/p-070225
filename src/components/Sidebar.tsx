@@ -1,7 +1,7 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, Users, ClipboardList, BarChart, Settings } from "lucide-react";
+import { Home, Users, ClipboardList, BarChart, Settings, HelpCircle  } from "lucide-react";
 
 type SidebarItem = {
   title: string;
@@ -17,7 +17,8 @@ const mainItems: SidebarItem[] = [
 ];
 
 const settingsItems: SidebarItem[] = [
-  { title: "Настройки учета", href: "/employee-settings", icon: Settings },
+  { title: "Параметры учета", href: "/employee-settings", icon: Settings },
+  { title: "Справка", href: "/employee-settings", icon: HelpCircle  },
 ];
 
 const Sidebar = () => {
