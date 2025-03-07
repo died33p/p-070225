@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, Area, AreaChart } from "recharts";
 import { Calendar as CalendarIcon, Filter, PieChart as PieChartIcon, BarChart as BarChartIcon, 
   Users, Search, ChevronDown } from "lucide-react";
 import {
@@ -51,6 +51,19 @@ const fullMonthlyData = [
   { month: "Июн", normHours: 176, actualHours: 172, breakHours: 20, additionalHours: 10, idleHours: 14, employeeId: "3" },
 ];
 
+// Sample daily work time data - to be filtered by employee and date
+const dailyWorkTimeData = [
+  { date: "01.06.2023", startTime: "08:00", endTime: "17:00", breaks: 60, idle: 45, employeeId: "1" },
+  { date: "02.06.2023", startTime: "08:30", endTime: "17:30", breaks: 45, idle: 30, employeeId: "1" },
+  { date: "03.06.2023", startTime: "08:15", endTime: "17:15", breaks: 50, idle: 35, employeeId: "1" },
+  { date: "01.06.2023", startTime: "09:00", endTime: "18:00", breaks: 70, idle: 60, employeeId: "2" },
+  { date: "02.06.2023", startTime: "09:30", endTime: "18:30", breaks: 65, idle: 50, employeeId: "2" },
+  { date: "03.06.2023", startTime: "09:15", endTime: "18:15", breaks: 55, idle: 40, employeeId: "2" },
+  { date: "01.06.2023", startTime: "08:00", endTime: "17:00", breaks: 40, idle: 25, employeeId: "3" },
+  { date: "02.06.2023", startTime: "08:30", endTime: "17:30", breaks: 35, idle: 20, employeeId: "3" },
+  { date: "03.06.2023", startTime: "08:15", endTime: "17:15", breaks: 30, idle: 15, employeeId: "3" },
+];
+
 // Sample employee performance data - also to be filtered
 const fullEmployeePerformance = [
   { name: "Иванов И.И.", efficiency: 92, normCompletion: 88, idlePercent: 8, employeeId: "1" },
@@ -86,6 +99,38 @@ const timeDistributionByEmployee = {
   ],
 };
 
+// Weekly statistics for each employee
+const weeklyStatsByEmployee = {
+  "1": [
+    { day: "Пн", hours: 8.5, normHours: 8 },
+    { day: "Вт", hours: 7.8, normHours: 8 },
+    { day: "Ср", hours: 8.2, normHours: 8 },
+    { day: "Чт", hours: 8.0, normHours: 8 },
+    { day: "Пт", hours: 7.5, normHours: 8 },
+  ],
+  "2": [
+    { day: "Пн", hours: 7.0, normHours: 8 },
+    { day: "Вт", hours: 7.5, normHours: 8 },
+    { day: "Ср", hours: 7.8, normHours: 8 },
+    { day: "Чт", hours: 7.2, normHours: 8 },
+    { day: "Пт", hours: 7.0, normHours: 8 },
+  ],
+  "3": [
+    { day: "Пн", hours: 8.2, normHours: 8 },
+    { day: "Вт", hours: 8.5, normHours: 8 },
+    { day: "Ср", hours: 8.4, normHours: 8 },
+    { day: "Чт", hours: 8.3, normHours: 8 },
+    { day: "Пт", hours: 8.0, normHours: 8 },
+  ],
+  "all": [
+    { day: "Пн", hours: 8.0, normHours: 8 },
+    { day: "Вт", hours: 8.0, normHours: 8 },
+    { day: "Ср", hours: 8.0, normHours: 8 },
+    { day: "Чт", hours: 8.0, normHours: 8 },
+    { day: "Пт", hours: 7.5, normHours: 8 },
+  ]
+};
+
 const COLORS = ['#0088FE', '#8884D8', '#FFBB28', '#FF8042'];
 
 const Analytics = () => {
@@ -108,6 +153,14 @@ const Analytics = () => {
   // Get time distribution data for selected employee
   const timeDistributionData = timeDistributionByEmployee[selectedEmployee] || timeDistributionByEmployee["all"];
 
+  // Get weekly stats for selected employee
+  const weeklyStats = weeklyStatsByEmployee[selectedEmployee] || weeklyStatsByEmployee["all"];
+
+  // Get daily work data for selected employee
+  const filteredDailyData = selectedEmployee === "all"
+    ? dailyWorkTimeData
+    : dailyWorkTimeData.filter(item => item.employeeId === selectedEmployee);
+
   // Calculate percentages for time distribution
   const totalTime = timeDistributionData.reduce((sum, item) => sum + item.value, 0);
   const timePercentages = timeDistributionData.map(item => ({
@@ -122,6 +175,22 @@ const Analytics = () => {
   const handlePeriodChange = (period: string) => {
     setSelectedPeriod(period);
     setIsCustomPeriod(period === "custom");
+  };
+
+  // Summary cards - showing key metrics based on filtered data
+  const summaryMetrics = {
+    efficiency: filteredPerformanceData.length > 0 
+      ? Math.round(filteredPerformanceData.reduce((sum, item) => sum + item.efficiency, 0) / filteredPerformanceData.length) 
+      : 0,
+    normCompletion: filteredPerformanceData.length > 0 
+      ? Math.round(filteredPerformanceData.reduce((sum, item) => sum + item.normCompletion, 0) / filteredPerformanceData.length) 
+      : 0,
+    idlePercent: filteredPerformanceData.length > 0 
+      ? Math.round(filteredPerformanceData.reduce((sum, item) => sum + item.idlePercent, 0) / filteredPerformanceData.length) 
+      : 0,
+    avgHours: filteredMonthlyData.length > 0 
+      ? Math.round(filteredMonthlyData.reduce((sum, item) => sum + item.actualHours, 0) / filteredMonthlyData.length) 
+      : 0
   };
 
   return (
@@ -276,6 +345,45 @@ const Analytics = () => {
         </CardContent>
       </Card>
 
+      {/* Сводные показатели (Key Metrics) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="glass-card">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center">
+              <span className="text-2xl font-bold text-primary">{summaryMetrics.efficiency}%</span>
+              <span className="text-sm text-muted-foreground">Эффективность</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="glass-card">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center">
+              <span className="text-2xl font-bold text-primary">{summaryMetrics.normCompletion}%</span>
+              <span className="text-sm text-muted-foreground">Выполнение нормы</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="glass-card">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center">
+              <span className="text-2xl font-bold text-primary">{summaryMetrics.idlePercent}%</span>
+              <span className="text-sm text-muted-foreground">Простои</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="glass-card">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center">
+              <span className="text-2xl font-bold text-primary">{summaryMetrics.avgHours}</span>
+              <span className="text-sm text-muted-foreground">Среднее кол-во часов</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* График эффективности использования рабочего времени */}
       <Card className="glass-card">
         <CardHeader>
@@ -300,6 +408,34 @@ const Analytics = () => {
                 <Line type="monotone" dataKey="actualHours" name="Фактическое время" stroke="#82ca9d" strokeWidth={2} />
                 <Line type="monotone" dataKey="idleHours" name="Время простоя" stroke="#ff8042" strokeWidth={2} />
               </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* График недельной статистики */}
+      <Card className="glass-card">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <BarChartIcon className="mr-2 h-5 w-5" />
+            Недельная статистика рабочего времени
+            <span className="ml-auto text-sm text-muted-foreground">
+              {selectedEmployee === "all" ? "Все сотрудники" : employees.find(e => e.id === selectedEmployee)?.name}
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={weeklyStats}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="day" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="hours" name="Фактические часы" fill="#82ca9d" />
+                <Bar dataKey="normHours" name="Норма часов" fill="#8884d8" />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </CardContent>
@@ -407,6 +543,36 @@ const Analytics = () => {
         </CardContent>
       </Card>
 
+      {/* Динамика распределения рабочего времени */}
+      <Card className="glass-card">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <BarChartIcon className="mr-2 h-5 w-5" />
+            Динамика распределения рабочего времени
+            <span className="ml-auto text-sm text-muted-foreground">
+              {selectedEmployee === "all" ? "Все сотрудники" : employees.find(e => e.id === selectedEmployee)?.name}
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[400px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={filteredMonthlyData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Area type="monotone" dataKey="actualHours" stackId="1" name="Фактическое время" stroke="#82ca9d" fill="#82ca9d" />
+                <Area type="monotone" dataKey="breakHours" stackId="1" name="Перерывы" stroke="#8884d8" fill="#8884d8" />
+                <Area type="monotone" dataKey="additionalHours" stackId="1" name="Доп. работы" stroke="#FFBB28" fill="#FFBB28" />
+                <Area type="monotone" dataKey="idleHours" stackId="1" name="Простои" stroke="#FF8042" fill="#FF8042" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
       {selectedEmployee !== "all" && (
         <Card className="glass-card">
           <CardHeader>
@@ -453,6 +619,53 @@ const Analytics = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Ежедневный учет рабочего времени */}
+      <Card className="glass-card">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <BarChartIcon className="mr-2 h-5 w-5" />
+            Ежедневный учет рабочего времени
+            <span className="ml-auto text-sm text-muted-foreground">
+              {selectedEmployee === "all" ? "Все сотрудники" : employees.find(e => e.id === selectedEmployee)?.name}
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Дата</TableHead>
+                <TableHead>Начало</TableHead>
+                <TableHead>Окончание</TableHead>
+                <TableHead>Перерывы (мин)</TableHead>
+                <TableHead>Простои (мин)</TableHead>
+                <TableHead className="text-right">Всего часов</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredDailyData.map((item, index) => {
+                // Calculate total hours
+                const start = new Date(`2023-01-01T${item.startTime}:00`);
+                const end = new Date(`2023-01-01T${item.endTime}:00`);
+                const totalMinutes = (end.getTime() - start.getTime()) / 60000 - item.breaks;
+                const totalHours = Math.round(totalMinutes / 6) / 10; // Round to 1 decimal
+                
+                return (
+                  <TableRow key={index}>
+                    <TableCell>{item.date}</TableCell>
+                    <TableCell>{item.startTime}</TableCell>
+                    <TableCell>{item.endTime}</TableCell>
+                    <TableCell>{item.breaks}</TableCell>
+                    <TableCell>{item.idle}</TableCell>
+                    <TableCell className="text-right">{totalHours}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 };
