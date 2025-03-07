@@ -1,7 +1,7 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, Clock, Users, CalendarClock, ClipboardList, BarChart } from "lucide-react";
+import { Home, Users, ClipboardList, BarChart } from "lucide-react";
 
 type SidebarItem = {
   title: string;
@@ -12,9 +12,8 @@ type SidebarItem = {
 const mainItems: SidebarItem[] = [
   { title: "Главная", href: "/", icon: Home },
   { title: "Сотрудники", href: "/employee-directory", icon: Users },
-  { title: "Табель учета", href: "/time-sheet", icon: CalendarClock },
-  { title: "Доп. работы", href: "/additional-work", icon: ClipboardList },
   { title: "Аналитика", href: "/analytics", icon: BarChart },
+  { title: "Доп. работы", href: "/additional-work", icon: ClipboardList },
 ];
 
 const Sidebar = () => {

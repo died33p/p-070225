@@ -9,7 +9,6 @@ import Index from "./pages/Index";
 import Analytics from "./pages/Analytics";
 import EmployeeSettings from "./pages/EmployeeSettings";
 import EmployeeDirectory from "./pages/EmployeeDirectory";
-import TimeSheet from "./pages/TimeSheet";
 import AdditionalWorkJournal from "./pages/AdditionalWorkJournal";
 
 const queryClient = new QueryClient();
@@ -29,7 +28,6 @@ const App = () => (
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/employee-settings" element={<EmployeeSettings />} />
                 <Route path="/employee-directory" element={<EmployeeDirectory />} />
-                <Route path="/time-sheet" element={<TimeSheet />} />
                 <Route path="/additional-work" element={<AdditionalWorkJournal />} />
               </Routes>
             </div>
