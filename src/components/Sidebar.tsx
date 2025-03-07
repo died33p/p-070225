@@ -47,6 +47,27 @@ const Sidebar = () => {
           </Link>
         ))}
       </nav>
+      
+      <div className="px-4 py-2 border-t border-border">
+        <div className="mb-2 px-2 text-xs font-semibold text-muted-foreground">
+          НАСТРОЙКИ
+        </div>
+        {settingsItems.map((item) => (
+          <Link
+            key={item.href}
+            to={item.href}
+            className={cn(
+              "flex items-center px-2 py-2 text-sm font-medium rounded-md",
+              location.pathname === item.href
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <item.icon className="mr-3 h-5 w-5" />
+            {item.title}
+          </Link>
+        ))}
+      </div>
     </div>
   );
 };
