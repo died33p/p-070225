@@ -230,7 +230,7 @@ const TimeSheet = () => {
         <CardContent className="overflow-auto">
           <div className="border rounded-md">
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 z-20">
                 <TableRow>
                   <TableHead className="sticky left-0 bg-background z-10">Сотрудник</TableHead>
                   {days.map(day => (
@@ -248,10 +248,10 @@ const TimeSheet = () => {
                 {Object.entries(employeesByShift).map(([shift, shiftEmployees]) => (
                   <React.Fragment key={shift}>
                     {shiftEmployees.length > 0 && (
-                      <TableRow>
+                      <TableRow className="sticky top-10 z-10">
                         <TableCell 
                           colSpan={days.length + 1} 
-                          className="bg-muted font-semibold sticky top-0 z-20"
+                          className="bg-muted font-semibold"
                         >
                           {getShiftName(shift)}
                         </TableCell>

@@ -31,7 +31,7 @@ const App = () => {
           <div className="flex min-h-screen bg-background">
             <Sidebar onToggle={handleSidebarToggle} />
             <main className={`flex-1 transition-all duration-300 ${isSidebarCollapsed ? 'ml-16' : 'ml-64'} p-8`}>
-              <div className="max-w-7xl mx-auto">
+              <div className="max-w-7xl mx-auto w-full">
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/analytics" element={<Analytics />} />
