@@ -152,9 +152,9 @@ const TimeSheet = () => {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-4xl font-bold text-primary">Табель учета рабочего времени</h1>
+        <h1 className="text-4xl font-bold text-primary">График учета рабочего времени</h1>
         <p className="text-secondary-foreground">
-          {isEditMode ? "Редактирование норм рабочего времени" : "Просмотр табеля учета рабочего времени"}
+          {isEditMode ? "Редактирование норм рабочего времени" : "Просмотр графика учета рабочего времени"}
         </p>
       </header>
 
@@ -163,7 +163,7 @@ const TimeSheet = () => {
           <CardTitle className="flex items-center gap-4">
             <Calendar className="h-5 w-5" />
             <div className="flex items-center">
-              Табель за 
+              График за 
               <Button
                 variant="ghost"
                 size="icon"
@@ -172,7 +172,10 @@ const TimeSheet = () => {
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span>{format(currentDate, 'MMMM yyyy', { locale: ru })}</span>
+              <span>
+                {format(currentDate, 'LLLL yyyy', { locale: ru })
+                  .replace(/^./, (str) => str.toLowerCase())}
+              </span>
               <Button
                 variant="ghost"
                 size="icon"
