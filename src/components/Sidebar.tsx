@@ -2,7 +2,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Home, Users, ClipboardList, BarChart, Settings, HelpCircle, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 
 type SidebarItem = {
@@ -24,9 +24,23 @@ const settingsItems: SidebarItem[] = [
   { title: "Справка", href: "/help", icon: HelpCircle },
 ];
 
-const Sidebar = () => {
+interface SidebarProps {
+  onToggle?: (collapsed: boolean) => void;
+}
+
+const Sidebar = ({ onToggle }: SidebarProps) => {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (onToggle) {
+      onToggle(isCollapsed);
+    }
+  }, [isCollapsed, onToggle]);
+
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
+  };
 
   return (
     <div className={cn(
@@ -43,7 +57,7 @@ const Sidebar = () => {
           variant="ghost"
           size="icon"
           className="ml-auto"
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={toggleSidebar}
         >
           {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
@@ -73,21 +87,23 @@ const Sidebar = () => {
             НАСТРОЙКИ
           </div>
         )}
-        {settingsItems.map((item) => (
-          <Link
-            key={item.href}
-            to={item.href}
-            className={cn(
-              "flex items-center px-2 py-2 text-sm font-medium rounded-md mb-1 last:mb-0",
-              location.pathname === item.href
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
-          >
-            <item.icon className="h-5 w-5" />
-            {!isCollapsed && <span className="ml-3">{item.title}</span>}
-          </Link>
-        ))}
+        <div className="space-y-1">
+          {settingsItems.map((item) => (
+            <Link
+              key={item.href}
+              to={item.href}
+              className={cn(
+                "flex items-center px-2 py-2 text-sm font-medium rounded-md",
+                location.pathname === item.href
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              {!isCollapsed && <span className="ml-3">{item.title}</span>}
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

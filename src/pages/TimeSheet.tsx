@@ -149,6 +149,18 @@ const TimeSheet = () => {
     return format(date, 'EEEEEE', { locale: ru });
   };
 
+  // Helper function to format month in a correct way
+  const formatMonth = (date: Date): string => {
+    // In Russian, the month name needs to be in nominative case, not genitive
+    // This formats the month name in lowercase and then capitalizes the first letter
+    return format(date, 'LLLL', { locale: ru })
+      .replace(/^./, (str) => str.toLowerCase());
+  };
+
+  const getShiftName = (shift: string | number): string => {
+    return shift === 0 || shift === "0" ? "Без смены" : `Смена ${shift}`;
+  };
+
   return (
     <div className="space-y-8">
       <header>
@@ -173,8 +185,7 @@ const TimeSheet = () => {
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span>
-                {format(currentDate, 'LLLL yyyy', { locale: ru })
-                  .replace(/^./, (str) => str.toLowerCase())}
+                {formatMonth(currentDate)} {format(currentDate, 'yyyy')}
               </span>
               <Button
                 variant="ghost"
@@ -240,9 +251,9 @@ const TimeSheet = () => {
                       <TableRow>
                         <TableCell 
                           colSpan={days.length + 1} 
-                          className="bg-muted font-semibold"
+                          className="bg-muted font-semibold sticky top-0 z-20"
                         >
-                          Смена {shift}
+                          {getShiftName(shift)}
                         </TableCell>
                       </TableRow>
                     )}
