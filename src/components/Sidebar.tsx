@@ -1,7 +1,7 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, Users, ClipboardList, BarChart, Settings, HelpCircle  } from "lucide-react";
+import { Home, Users, ClipboardList, BarChart, Settings, HelpCircle, Calendar } from "lucide-react";
 
 type SidebarItem = {
   title: string;
@@ -13,6 +13,7 @@ const mainItems: SidebarItem[] = [
   { title: "Главная", href: "/", icon: Home },
   { title: "Сотрудники", href: "/employee-directory", icon: Users },
   { title: "Аналитика", href: "/analytics", icon: BarChart },
+  { title: "Табель учета", href: "/timesheet", icon: Calendar },
   { title: "Доп. работы", href: "/additional-work", icon: ClipboardList },
 ];
 

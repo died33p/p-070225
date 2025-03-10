@@ -10,6 +10,7 @@ import Analytics from "./pages/Analytics";
 import EmployeeSettings from "./pages/EmployeeSettings";
 import EmployeeDirectory from "./pages/EmployeeDirectory";
 import AdditionalWorkJournal from "./pages/AdditionalWorkJournal";
+import TimeSheet from "./pages/TimeSheet";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
                 <Route path="/employee-settings" element={<EmployeeSettings />} />
                 <Route path="/employee-directory" element={<EmployeeDirectory />} />
                 <Route path="/additional-work" element={<AdditionalWorkJournal />} />
+                <Route path="/timesheet" element={<TimeSheet />} />
               </Routes>
             </div>
           </main>
