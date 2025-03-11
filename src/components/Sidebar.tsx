@@ -16,7 +16,7 @@ const mainItems: SidebarItem[] = [
   { title: "Сотрудники", href: "/employee-directory", icon: Users },
   { title: "Аналитика", href: "/analytics", icon: BarChart },
   { title: "График", href: "/timesheet", icon: Calendar },
-  { title: "Доп. работы", href: "/additional-work", icon: ClipboardList },
+  { title: "Журнал", href: "/additional-work", icon: ClipboardList },
 ];
 
 const settingsItems: SidebarItem[] = [
