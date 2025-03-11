@@ -32,27 +32,27 @@ const TimeSheet = () => {
   const [isEditMode, setIsEditMode] = useState(false);
 
   const employees: Employee[] = [
-    { id: "1", name: "Куликов А.В.", shift: 1, role: "Мастер цеха", totalHours: 167 },
-    { id: "2", name: "Грошиков А.В.", shift: 1, role: "Оператор АИСС", totalHours: 159 },
-    { id: "3", name: "Федорков Е.А.", shift: 1, role: "Оператор АИСС", totalHours: 159 },
+    { id: "1", name: "Куликов А.Б.", shift: 1, role: "Мастер цеха", totalHours: 167 },
+    { id: "2", name: "Грознецкий А.В.", shift: 1, role: "Оператор АЛСС", totalHours: 159 },
+    { id: "3", name: "Фараджов Е.А.", shift: 1, role: "подсобный рабочий", totalHours: 159 },
     { id: "4", name: "Ситников П.В.", shift: 1, role: "Оператор СПО", totalHours: 159 },
-    { id: "5", name: "Максинов А.В.", shift: 1, role: "Ст. оп. СПО", totalHours: 159 },
-    { id: "6", name: "Шигапитов И.А.", shift: 1, role: "Оператор испыт., физ. испыт.", totalHours: 159 },
-    { id: "7", name: "Романовский Д.А.", shift: 1, role: "Оператор испыт.", totalHours: 159 },
-    { id: "8", name: "Бориев Геннадий А.", shift: 1, role: "Подсобный рабочий, Старший испыт.", totalHours: 159 },
-    { id: "9", name: "Шульгин М.А.", shift: 1, role: "Старший испыт.", totalHours: 159 },
-    { id: "10", name: "Клещев Е.И.", shift: 1, role: "Оператор АИСС", totalHours: 159 },
-    { id: "11", name: "Ермаков А.И.", shift: 1, role: "Оператор испыт., Старший АИСС", totalHours: 159 },
-    { id: "12", name: "Борисов И.В.", shift: 2, role: "Оператор испыт.", totalHours: 151 },
-    { id: "13", name: "Ветров С.Н.", shift: 2, role: "Оператор АИСС", totalHours: 151 },
-    { id: "14", name: "Новосёлов И.С.", shift: 2, role: "Оператор испыт., опр. АИСС, опр. приёмный", totalHours: 151 },
-    { id: "15", name: "Пушкарь А.О.", shift: 2, role: "Оператор АИСС, опр. приёмный", totalHours: 151 },
+    { id: "5", name: "Максимов А.В.", shift: 1, role: "Ст.оп-р СПО", totalHours: 159 },
+    { id: "6", name: "Шаритдинов Д.А.", shift: 1, role: "Оператор листогиба, гильотины", totalHours: 159 },
+    { id: "7", name: "Романовский Д.А.", shift: 1, role: "Оператор листогиба", totalHours: 159 },
+    { id: "8", name: "Борцев Геннадий А.", shift: 1, role: '"Подсобный рабочий,\nСтажёр листогиба"', totalHours: 159 },
+    { id: "9", name: "Шубин М.А.", shift: 1, role: "Оператор листогиба", totalHours: 159 },
+    { id: "10", name: "Клебер Е.И.", shift: 1, role: "Оператор АЛСС", totalHours: 159 },
+    { id: "11", name: "Германов А.Я.", shift: 1, role: "Оператор листогиба, Стажер АЛСС", totalHours: 159 },
+    { id: "12", name: "Борисов Д.В.", shift: 2, role: "Оператор гильотины", totalHours: 151 },
+    { id: "13", name: "Вепрев С.Н.", shift: 2, role: "Оператор АЛСС", totalHours: 151 },
+    { id: "14", name: "Новосёлов И.С.", shift: 2, role: "Оператор листогиба", totalHours: 151 },
+    { id: "15", name: "Елизаров А.О.", shift: 2, role: "оператор листогиба, опр-р АЛСС, опе-р гильотины", totalHours: 151 },
     { id: "16", name: "Вяткин М.Ф.", shift: 2, role: "Оператор СПО", totalHours: 151 },
-    { id: "17", name: "Козулин И.В.", shift: 2, role: "Оператор СПО", totalHours: 151 },
-    { id: "18", name: "Пихнатов А.В.", shift: 2, role: "Оператор АИСС", totalHours: 151 },
-    { id: "19", name: "Лиханов Н.А.", shift: 2, role: "Оператор АИСС", totalHours: 151 },
-    { id: "20", name: "Малышин А.О.", shift: 2, role: "Подсобный рабочий", totalHours: 151 },
-    { id: "21", name: "Бутаков Н.С.", shift: 2, role: "Оператор испыт.", totalHours: 151 },
+    { id: "17", name: "Козочкин П.В.", shift: 2, role: "Оператор СПО", totalHours: 151 },
+    { id: "18", name: "Шахматов А.В.", shift: 2, role: "Оператор АЛСС", totalHours: 151 },
+    { id: "19", name: "Лиханов Н.А.", shift: 2, role: "Оператор АЛСС", totalHours: 151 },
+    { id: "20", name: "Малыгин А.О.", shift: 2, role: "подсобный рабочий", totalHours: 151 },
+    { id: "21", name: "Булгаков Н.С.", shift: 2, role: "Оператор листогиба", totalHours: 151 },
   ];
 
   const sortedEmployees = [...employees].sort((a, b) => a.shift - b.shift);
@@ -120,22 +120,24 @@ const TimeSheet = () => {
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
 
       const newNorms: WorkNorm[] = [];
-      let currentShift: number | null = null;
+      let currentShift: string | null = null;
+      let employeeIndex = 0;
 
       jsonData.forEach((row: any[], rowIndex: number) => {
-        if (row[0]?.toString().includes("СМЕНА")) {
-          currentShift = parseInt(row[0].split(" ")[0]);
+        if (row[0]?.toString().includes("смена")) {
+          currentShift = row[0];
+          employeeIndex = 0;
           return;
         }
 
-        if (row[1]?.toString().startsWith("ФАМИЛИЯ") || !row[1]) return;
+        if (row[2]?.toString().startsWith("Фамилия") || !row[2]) return;
 
-        const employee = employees.find(e => e.name === row[1] && e.shift === currentShift);
+        const employee = employees.find(e => e.name === row[2]);
         if (!employee) return;
 
-        for (let day = 1; day <= daysInMonth; day++) {
-          const hours = parseFloat(row[day + 1]) || 0;
-          const date = setDate(currentDate, day);
+        for (let day = 0; day < days.length; day++) {
+          const hours = parseFloat(row[day + 3]) || 0; // Смещение на 3 столбца (Смена, № п/п, Фамилия И.О.)
+          const date = setDate(currentDate, day + 1);
           newNorms.push({
             employeeId: employee.id,
             date,
@@ -143,6 +145,7 @@ const TimeSheet = () => {
             modified: true,
           });
         }
+        employeeIndex++;
       });
 
       setWorkNorms(newNorms);
@@ -157,13 +160,14 @@ const TimeSheet = () => {
 
     // Заголовок
     worksheetData.push(["График смен", "", "Март", "2025"]);
-    worksheetData.push(["Смена", "ФАМИЛИЯ И.О.", ...days, "ИТОГ", "ДОЛЖНОСТЬ"]);
+    worksheetData.push(["Смена", "№ п/п", "Фамилия И.О.", ...days.map(d => d.toString()), "ИТОГ", "Должность", "наставник"]);
 
     // Данные по сменам и сотрудникам
+    let index = 1;
     Object.entries(employeesByShift).forEach(([shift, shiftEmployees]) => {
-      worksheetData.push([`${shift} СМЕНА`]);
+      worksheetData.push([`${shift} смена`]);
       shiftEmployees.forEach(employee => {
-        const row = ["", employee.name, ...days.map(() => ""), employee.totalHours || 0, employee.role];
+        const row = ["", index++, employee.name, ...days.map(() => ""), employee.totalHours || 0, employee.role, ""];
         worksheetData.push(row);
       });
     });
