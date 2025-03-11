@@ -26,7 +26,7 @@ interface WorkNorm {
 
 const TimeSheet = () => {
   const { toast } = useToast();
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 2)); // Март 2025
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 2));
   const [workNorms, setWorkNorms] = useState<WorkNorm[]>([]);
   const [modifiedCells, setModifiedCells] = useState<{[key: string]: boolean}>({});
   const [isEditMode, setIsEditMode] = useState(false);
@@ -80,7 +80,7 @@ const TimeSheet = () => {
     const norm = workNorms.find(
       wn => wn.employeeId === employeeId && format(wn.date, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
     );
-    return norm?.hours || 8; // По умолчанию 8 часов
+    return norm ? norm.hours : (employees.find(e => e.id === employeeId)?.shift === 1 ? 8 : 9); // По умолчанию 8 для 1 смены, 9 для 2 смены
   };
 
   const getCellKey = (employeeId: string, day: number): string => {
@@ -117,16 +117,43 @@ const TimeSheet = () => {
       const data = new Uint8Array(e.target?.result as ArrayBuffer);
       const workbook = XLSX.read(data, { type: 'array' });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-      const newNorms: WorkNorm[] = jsonData.map((row: any) => ({
-        employeeId: row.employeeId,
-        date: new Date(row.date),
-        hours: Number(row.hours),
-        modified: true
-      }));
+      const newNorms: WorkNorm[] = [];
+      let currentShift: number | null = null;
+      let employeeIndex = 0;
 
-      setWorkNorms(prev => [...prev, ...newNorms]);
+      jsonData.forEach((row: any[], rowIndex: number) => {
+        // Определяем смену
+        if (row[0]?.toString().includes("СМЕНА")) {
+          currentShift = parseInt(row[0].split(" ")[0]);
+          employeeIndex = 0;
+          return;
+        }
+
+        // Пропускаем заголовки
+        if (row[2]?.toString().startsWith("ФАМИЛИЯ") || !row[2]) return;
+
+        const employee = employees.find(e => e.name === row[2] && e.shift === currentShift);
+        if (!employee) return;
+
+        // Собираем часы по дням
+        for (let day = 1; day <= daysInMonth; day++) {
+          const hours = parseFloat(row[day + 2]) || 0; // Смещение на 3 столбца (Смена, №, ФИО)
+          if (hours > 0) {
+            const date = setDate(currentDate, day);
+            newNorms.push({
+              employeeId: employee.id,
+              date,
+              hours,
+              modified: true,
+            });
+          }
+        }
+        employeeIndex++;
+      });
+
+      setWorkNorms(newNorms);
       toast({ title: "Импорт завершен", description: "Данные из Excel загружены" });
     };
     reader.readAsArrayBuffer(file);
@@ -154,7 +181,7 @@ const TimeSheet = () => {
   };
 
   const getShiftName = (shift: string | number): string => {
-    return shift === 0 || shift === "0" ? "Без смены" : `${shift} смена`;
+    return shift === 0 || shift === "0" ? "Без смены" : `${shift} СМЕНА`; // Исправлено на формат "1 СМЕНА"
   };
 
   return (
