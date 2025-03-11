@@ -36,14 +36,24 @@ const SidebarItem = ({ item, isCollapsed, isActive }: {
   <Link
     to={item.href}
     className={cn(
-      "flex items-center px-2 py-2 text-sm font-medium rounded-md",
+      "flex items-center py-2 text-sm font-medium rounded-md",
+      isCollapsed ? "justify-center px-0" : "px-2",
       isActive
         ? "bg-primary/10 text-primary"
         : "text-muted-foreground hover:bg-muted hover:text-foreground"
     )}
   >
-    <item.icon className="h-5 w-5" />
-    {!isCollapsed && <span className="ml-3">{item.title}</span>}
+    <item.icon className="h-5 w-5 flex-shrink-0" />
+    {!isCollapsed && (
+      <span
+        className={cn(
+          "ml-3 transition-all duration-300",
+          isCollapsed ? "opacity-0 translate-x-[-10px]" : "opacity-100 translate-x-0"
+        )}
+      >
+        {item.title}
+      </span>
+    )}
   </Link>
 );
 
@@ -58,14 +68,23 @@ const Sidebar = ({ onToggle }: SidebarProps) => {
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
   return (
-    <div className={cn(
-      "fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden transition-all duration-300",
-      "bg-card border-r border-border py-4",
-      isCollapsed ? "w-16" : "w-64"
-    )}>
+    <div
+      className={cn(
+        "fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden transition-all duration-300",
+        "bg-card border-r border-border py-4",
+        isCollapsed ? "w-16" : "w-64"
+      )}
+    >
       <div className="px-4 flex justify-between items-center">
         {!isCollapsed && (
-          <h1 className="text-2xl font-bold text-primary">TimeTracker</h1>
+          <h1
+            className={cn(
+              "text-2xl font-bold text-primary transition-opacity duration-300",
+              isCollapsed ? "opacity-0" : "opacity-100"
+            )}
+          >
+            TimeTracker
+          </h1>
         )}
         <Button
           variant="ghost"
@@ -91,7 +110,12 @@ const Sidebar = ({ onToggle }: SidebarProps) => {
 
       <div className="px-2 py-2 border-t border-border mt-auto">
         {!isCollapsed && (
-          <div className="mb-2 px-2 text-xs font-semibold text-muted-foreground">
+          <div
+            className={cn(
+              "mb-2 px-2 text-xs font-semibold text-muted-foreground transition-opacity duration-300",
+              isCollapsed ? "opacity-0" : "opacity-100"
+            )}
+          >
             НАСТРОЙКИ
           </div>
         )}
