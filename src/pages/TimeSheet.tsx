@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { format, getDaysInMonth, setDate, addMonths, subMonths, getDay } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -14,6 +13,8 @@ interface Employee {
   id: string;
   name: string;
   shift: number;
+  role: string;
+  totalHours?: number;
 }
 
 interface WorkNorm {
@@ -25,38 +26,50 @@ interface WorkNorm {
 
 const TimeSheet = () => {
   const { toast } = useToast();
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 2)); // Март 2025
   const [workNorms, setWorkNorms] = useState<WorkNorm[]>([]);
   const [modifiedCells, setModifiedCells] = useState<{[key: string]: boolean}>({});
   const [isEditMode, setIsEditMode] = useState(false);
-  
-  // Sample employees with shifts
+
   const employees: Employee[] = [
-    { id: "1", name: "Иванов Иван Иванович", shift: 1 },
-    { id: "2", name: "Петров Петр Петрович", shift: 2 },
-    { id: "3", name: "Сидорова Анна Михайловна", shift: 0 },
+    { id: "1", name: "Куликов А.В.", shift: 1, role: "Мастер цеха", totalHours: 167 },
+    { id: "2", name: "Грошиков А.В.", shift: 1, role: "Оператор АИСС", totalHours: 159 },
+    { id: "3", name: "Федорков Е.А.", shift: 1, role: "Оператор АИСС", totalHours: 159 },
+    { id: "4", name: "Ситников П.В.", shift: 1, role: "Оператор СПО", totalHours: 159 },
+    { id: "5", name: "Максинов А.В.", shift: 1, role: "Ст. оп. СПО", totalHours: 159 },
+    { id: "6", name: "Шигапитов И.А.", shift: 1, role: "Оператор испыт., физ. испыт.", totalHours: 159 },
+    { id: "7", name: "Романовский Д.А.", shift: 1, role: "Оператор испыт.", totalHours: 159 },
+    { id: "8", name: "Бориев Геннадий А.", shift: 1, role: "Подсобный рабочий, Старший испыт.", totalHours: 159 },
+    { id: "9", name: "Шульгин М.А.", shift: 1, role: "Старший испыт.", totalHours: 159 },
+    { id: "10", name: "Клещев Е.И.", shift: 1, role: "Оператор АИСС", totalHours: 159 },
+    { id: "11", name: "Ермаков А.И.", shift: 1, role: "Оператор испыт., Старший АИСС", totalHours: 159 },
+    { id: "12", name: "Борисов И.В.", shift: 2, role: "Оператор испыт.", totalHours: 151 },
+    { id: "13", name: "Ветров С.Н.", shift: 2, role: "Оператор АИСС", totalHours: 151 },
+    { id: "14", name: "Новосёлов И.С.", shift: 2, role: "Оператор испыт., опр. АИСС, опр. приёмный", totalHours: 151 },
+    { id: "15", name: "Пушкарь А.О.", shift: 2, role: "Оператор АИСС, опр. приёмный", totalHours: 151 },
+    { id: "16", name: "Вяткин М.Ф.", shift: 2, role: "Оператор СПО", totalHours: 151 },
+    { id: "17", name: "Козулин И.В.", shift: 2, role: "Оператор СПО", totalHours: 151 },
+    { id: "18", name: "Пихнатов А.В.", shift: 2, role: "Оператор АИСС", totalHours: 151 },
+    { id: "19", name: "Лиханов Н.А.", shift: 2, role: "Оператор АИСС", totalHours: 151 },
+    { id: "20", name: "Малышин А.О.", shift: 2, role: "Подсобный рабочий", totalHours: 151 },
+    { id: "21", name: "Бутаков Н.С.", shift: 2, role: "Оператор испыт.", totalHours: 151 },
   ];
 
-  // Sort employees by shift
   const sortedEmployees = [...employees].sort((a, b) => a.shift - b.shift);
-  
-  // Group employees by shift
   const employeesByShift: {[key: number]: Employee[]} = sortedEmployees.reduce((acc, employee) => {
-    if (!acc[employee.shift]) {
-      acc[employee.shift] = [];
-    }
+    if (!acc[employee.shift]) acc[employee.shift] = [];
     acc[employee.shift].push(employee);
     return acc;
   }, {} as {[key: number]: Employee[]});
 
   const daysInMonth = getDaysInMonth(currentDate);
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-  
+
   const prevMonth = () => {
     setCurrentDate(prev => subMonths(prev, 1));
     setModifiedCells({});
   };
-  
+
   const nextMonth = () => {
     setCurrentDate(prev => addMonths(prev, 1));
     setModifiedCells({});
@@ -65,10 +78,9 @@ const TimeSheet = () => {
   const getWorkNorm = (employeeId: string, day: number): number => {
     const date = setDate(currentDate, day);
     const norm = workNorms.find(
-      wn => wn.employeeId === employeeId && 
-      format(wn.date, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
+      wn => wn.employeeId === employeeId && format(wn.date, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
     );
-    return norm?.hours || 8; // Default to 8 hours if not set
+    return norm?.hours || 8; // По умолчанию 8 часов
   };
 
   const getCellKey = (employeeId: string, day: number): string => {
@@ -82,11 +94,10 @@ const TimeSheet = () => {
 
   const handleWorkNormChange = (employeeId: string, day: number, hours: number) => {
     if (!isEditMode) return;
-    
     const date = setDate(currentDate, day);
     const formattedDate = format(date, 'yyyy-MM-dd');
     const cellKey = getCellKey(employeeId, day);
-    
+
     setWorkNorms(prev => {
       const filtered = prev.filter(
         wn => !(wn.employeeId === employeeId && format(wn.date, 'yyyy-MM-dd') === formattedDate)
@@ -94,10 +105,7 @@ const TimeSheet = () => {
       return [...filtered, { employeeId, date, hours, modified: true }];
     });
 
-    setModifiedCells(prev => ({
-      ...prev,
-      [cellKey]: true
-    }));
+    setModifiedCells(prev => ({ ...prev, [cellKey]: true }));
   };
 
   const handleExcelImport = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,8 +119,6 @@ const TimeSheet = () => {
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-      // Process Excel data and update workNorms
-      // This is a simple example - adjust according to your Excel structure
       const newNorms: WorkNorm[] = jsonData.map((row: any) => ({
         employeeId: row.employeeId,
         date: new Date(row.date),
@@ -121,10 +127,7 @@ const TimeSheet = () => {
       }));
 
       setWorkNorms(prev => [...prev, ...newNorms]);
-      toast({
-        title: "Импорт завершен",
-        description: `Данные из Excel успешно загружены`,
-      });
+      toast({ title: "Импорт завершен", description: "Данные из Excel загружены" });
     };
     reader.readAsArrayBuffer(file);
   };
@@ -132,10 +135,7 @@ const TimeSheet = () => {
   const saveTimeSheet = () => {
     setModifiedCells({});
     setIsEditMode(false);
-    toast({
-      title: "Данные сохранены",
-      description: `Табель учета рабочего времени за ${format(currentDate, 'MMMM yyyy', { locale: ru })} сохранен`,
-    });
+    toast({ title: "Сохранено", description: `Табель за ${format(currentDate, 'MMMM yyyy', { locale: ru })} сохранен` });
   };
 
   const isWeekend = (day: number): boolean => {
@@ -149,24 +149,20 @@ const TimeSheet = () => {
     return format(date, 'EEEEEE', { locale: ru });
   };
 
-  // Helper function to format month in a correct way
   const formatMonth = (date: Date): string => {
-    // In Russian, the month name needs to be in nominative case, not genitive
-    // This formats the month name in lowercase and then capitalizes the first letter
-    return format(date, 'LLLL', { locale: ru })
-      .replace(/^./, (str) => str.toLowerCase());
+    return format(date, 'LLLL', { locale: ru }).replace(/^./, str => str.toLowerCase());
   };
 
   const getShiftName = (shift: string | number): string => {
-    return shift === 0 || shift === "0" ? "Без смены" : `Смена ${shift}`;
+    return shift === 0 || shift === "0" ? "Без смены" : `${shift} смена`;
   };
 
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-4xl font-bold text-primary">График учета рабочего времени</h1>
+        <h1 className="text-4xl font-bold text-primary">График смен</h1>
         <p className="text-secondary-foreground">
-          {isEditMode ? "Редактирование норм рабочего времени" : "Просмотр графика учета рабочего времени"}
+          {isEditMode ? "Редактирование графика смен" : "Просмотр графика смен"}
         </p>
       </header>
 
@@ -175,24 +171,12 @@ const TimeSheet = () => {
           <CardTitle className="flex items-center gap-4">
             <Calendar className="h-5 w-5" />
             <div className="flex items-center">
-              График за 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="mx-1"
-                onClick={prevMonth}
-              >
+              График за
+              <Button variant="ghost" size="icon" className="mx-1" onClick={prevMonth}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span>
-                {formatMonth(currentDate)} {format(currentDate, 'yyyy')}
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="mx-1"
-                onClick={nextMonth}
-              >
+              <span>{formatMonth(currentDate)} {format(currentDate, 'yyyy')}</span>
+              <Button variant="ghost" size="icon" className="mx-1" onClick={nextMonth}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
@@ -232,16 +216,20 @@ const TimeSheet = () => {
             <Table>
               <TableHeader className="sticky top-0 z-20">
                 <TableRow>
-                  <TableHead className="sticky left-0 bg-background z-10">Сотрудник</TableHead>
+                  <TableHead className="sticky left-0 bg-background z-10">Смена</TableHead>
+                  <TableHead className="sticky left-48 bg-background z-10">№ п/п</TableHead>
+                  <TableHead className="sticky left-72 bg-background z-10">ФАМИЛИЯ И.О.</TableHead>
                   {days.map(day => (
-                    <TableHead 
-                      key={day} 
+                    <TableHead
+                      key={day}
                       className={`text-center min-w-16 ${isWeekend(day) ? 'bg-red-50 text-red-600' : ''}`}
                     >
                       <div>{day}</div>
                       <div className="text-xs font-normal">{getDayOfWeekName(day)}</div>
                     </TableHead>
                   ))}
+                  <TableHead className="text-center min-w-16">ИТОГ</TableHead>
+                  <TableHead className="text-center min-w-32">ДОЛЖНОСТЬ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -249,23 +237,28 @@ const TimeSheet = () => {
                   <React.Fragment key={shift}>
                     {shiftEmployees.length > 0 && (
                       <TableRow className="sticky top-10 z-10">
-                        <TableCell 
-                          colSpan={days.length + 1} 
-                          className="bg-muted font-semibold"
-                        >
+                        <TableCell colSpan={days.length + 4} className="bg-muted font-semibold">
                           {getShiftName(shift)}
                         </TableCell>
                       </TableRow>
                     )}
-                    {shiftEmployees.map(employee => (
+                    {shiftEmployees.map((employee, index) => (
                       <TableRow key={employee.id}>
                         <TableCell className="font-medium sticky left-0 bg-background z-10 min-w-48">
+                          {employee.shift}
+                        </TableCell>
+                        <TableCell className="font-medium sticky left-48 bg-background z-10 min-w-24">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="font-medium sticky left-72 bg-background z-10 min-w-48">
                           {employee.name}
                         </TableCell>
                         {days.map(day => (
-                          <TableCell 
-                            key={day} 
-                            className={`p-1 text-center ${isWeekend(day) ? 'bg-red-50' : ''} ${isCellModified(employee.id, day) ? 'bg-yellow-50' : ''}`}
+                          <TableCell
+                            key={day}
+                            className={`p-1 text-center ${isWeekend(day) ? 'bg-red-50' : ''} ${
+                              isCellModified(employee.id, day) ? 'bg-yellow-50' : ''
+                            }`}
                           >
                             {isEditMode ? (
                               <Input
@@ -275,12 +268,8 @@ const TimeSheet = () => {
                                 step="0.5"
                                 className="h-8 text-center"
                                 value={getWorkNorm(employee.id, day)}
-                                onChange={(e) => 
-                                  handleWorkNormChange(
-                                    employee.id, 
-                                    day, 
-                                    parseFloat(e.target.value) || 0
-                                  )
+                                onChange={(e) =>
+                                  handleWorkNormChange(employee.id, day, parseFloat(e.target.value) || 0)
                                 }
                               />
                             ) : (
@@ -288,6 +277,8 @@ const TimeSheet = () => {
                             )}
                           </TableCell>
                         ))}
+                        <TableCell className="text-center">{employee.totalHours || 0}</TableCell>
+                        <TableCell className="text-center">{employee.role}</TableCell>
                       </TableRow>
                     ))}
                   </React.Fragment>
