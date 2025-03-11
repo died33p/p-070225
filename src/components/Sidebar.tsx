@@ -20,7 +20,7 @@ const mainItems: SidebarItem[] = [
 ];
 
 const settingsItems: SidebarItem[] = [
-  { title: "Параметры учета", href: "/employee-settings", icon: Settings },
+  { title: "Параметры", href: "/employee-settings", icon: Settings },
   { title: "Справка", href: "/help", icon: HelpCircle },
 ];
 
