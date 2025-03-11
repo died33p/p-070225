@@ -213,7 +213,7 @@ const TimeSheet = () => {
   const saveTimeSheet = () => {
     setModifiedCells({});
     setIsEditMode(false);
-    toast({ title: "Сохранено", description: `Табель за ${format(currentDate, 'MMMM yyyy', { locale: ru })} сохранен` });
+    toast({ title: "Сохранено", description: `Табель за ${format(currentDate, 'yyyy', { locale: ru })} сохранен` });
   };
 
   const isWeekend = (day: number): boolean => {
