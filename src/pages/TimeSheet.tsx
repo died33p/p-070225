@@ -119,37 +119,71 @@ const TimeSheet = () => {
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
 
+      // Поиск индекса столбца "Фамилия И.О."
+      let nameColumnIndex = -1;
+      let headerRow: any[] | null = null;
+
+      for (const row of jsonData) {
+        const rowArray = row as any[];
+        const index = rowArray.findIndex(cell => cell?.toString().trim() === "Фамилия И.О.");
+        if (index !== -1) {
+          nameColumnIndex = index;
+          headerRow = rowArray;
+          break;
+        }
+      }
+
+      if (nameColumnIndex === -1 || !headerRow) {
+        toast({ title: "Ошибка", description: "Колонка 'Фамилия И.О.' не найдена", variant: "destructive" });
+        return;
+      }
+
+      // Определение столбцов с днями (ищем числа от 1 до 31)
+      const dayColumns: { [key: number]: number } = {};
+      for (let i = nameColumnIndex + 1; i < headerRow.length; i++) {
+        const headerValue = headerRow[i]?.toString().trim();
+        const day = parseFloat(headerValue);
+        if (!isNaN(day) && day >= 1 && day <= 31 && Number.isInteger(day)) {
+          dayColumns[day] = i;
+        }
+      }
+
       const newNorms: WorkNorm[] = [];
-      let currentShift: string | null = null;
-      let employeeIndex = 0;
+      let processedEmployees = 0;
 
-      jsonData.forEach((row: any[], rowIndex: number) => {
-        if (row[0]?.toString().includes("смена")) {
-          currentShift = row[0];
-          employeeIndex = 0;
-          return;
+      // Обработка каждого сотрудника из таблицы на странице
+      for (const employee of employees) {
+        const excelRow = jsonData.find((row: any[]) => {
+          const rowArray = row as any[];
+          const name = rowArray[nameColumnIndex]?.toString().trim();
+          return name === employee.name;
+        });
+
+        if (excelRow) {
+          processedEmployees++;
+          for (let day = 1; day <= daysInMonth; day++) {
+            const columnIndex = dayColumns[day];
+            if (columnIndex !== undefined) {
+              const hours = parseFloat(excelRow[columnIndex]) || 0;
+              const date = setDate(currentDate, day);
+              newNorms.push({
+                employeeId: employee.id,
+                date,
+                hours,
+                modified: true,
+              });
+            }
+          }
         }
+      }
 
-        if (row[2]?.toString().startsWith("Фамилия") || !row[2]) return;
-
-        const employee = employees.find(e => e.name === row[2]);
-        if (!employee) return;
-
-        for (let day = 0; day < days.length; day++) {
-          const hours = parseFloat(row[day + 3]) || 0; // Смещение на 3 столбца (Смена, № п/п, Фамилия И.О.)
-          const date = setDate(currentDate, day + 1);
-          newNorms.push({
-            employeeId: employee.id,
-            date,
-            hours,
-            modified: true,
-          });
-        }
-        employeeIndex++;
-      });
+      if (processedEmployees === 0) {
+        toast({ title: "Ошибка", description: "Сотрудники из файла не найдены в графике", variant: "destructive" });
+        return;
+      }
 
       setWorkNorms(newNorms);
-      toast({ title: "Импорт завершен", description: "Данные из Excel загружены" });
+      toast({ title: "Импорт завершен", description: `Загружено данных для ${processedEmployees} сотрудников` });
     };
     reader.readAsArrayBuffer(file);
   };
@@ -174,8 +208,6 @@ const TimeSheet = () => {
 
     const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
     XLSX.utils.book_append_sheet(workbook, worksheet, "Шаблон");
-    
-    // Скачивание файла
     XLSX.writeFile(workbook, `Шаблон_график_смен_${format(currentDate, 'MMMM_yyyy', { locale: ru })}.xlsx`);
   };
 
