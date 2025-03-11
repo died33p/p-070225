@@ -13,7 +13,6 @@ interface Employee {
   id: string;
   name: string;
   shift: number;
-  role: string;
   totalHours?: number;
 }
 
@@ -32,27 +31,27 @@ const TimeSheet = () => {
   const [isEditMode, setIsEditMode] = useState(false);
 
   const employees: Employee[] = [
-    { id: "1", name: "Куликов А.Б.", shift: 1, role: "Мастер цеха", totalHours: 167 },
-    { id: "2", name: "Грознецкий А.В.", shift: 1, role: "Оператор АЛСС", totalHours: 159 },
-    { id: "3", name: "Фараджов Е.А.", shift: 1, role: "подсобный рабочий", totalHours: 159 },
-    { id: "4", name: "Ситников П.В.", shift: 1, role: "Оператор СПО", totalHours: 159 },
-    { id: "5", name: "Максимов А.В.", shift: 1, role: "Ст.оп-р СПО", totalHours: 159 },
-    { id: "6", name: "Шаритдинов Д.А.", shift: 1, role: "Оператор листогиба, гильотины", totalHours: 159 },
-    { id: "7", name: "Романовский Д.А.", shift: 1, role: "Оператор листогиба", totalHours: 159 },
-    { id: "8", name: "Борцев Геннадий А.", shift: 1, role: '"Подсобный рабочий,\nСтажёр листогиба"', totalHours: 159 },
-    { id: "9", name: "Шубин М.А.", shift: 1, role: "Оператор листогиба", totalHours: 159 },
-    { id: "10", name: "Клебер Е.И.", shift: 1, role: "Оператор АЛСС", totalHours: 159 },
-    { id: "11", name: "Германов А.Я.", shift: 1, role: "Оператор листогиба, Стажер АЛСС", totalHours: 159 },
-    { id: "12", name: "Борисов Д.В.", shift: 2, role: "Оператор гильотины", totalHours: 151 },
-    { id: "13", name: "Вепрев С.Н.", shift: 2, role: "Оператор АЛСС", totalHours: 151 },
-    { id: "14", name: "Новосёлов И.С.", shift: 2, role: "Оператор листогиба", totalHours: 151 },
-    { id: "15", name: "Елизаров А.О.", shift: 2, role: "оператор листогиба, опр-р АЛСС, опе-р гильотины", totalHours: 151 },
-    { id: "16", name: "Вяткин М.Ф.", shift: 2, role: "Оператор СПО", totalHours: 151 },
-    { id: "17", name: "Козочкин П.В.", shift: 2, role: "Оператор СПО", totalHours: 151 },
-    { id: "18", name: "Шахматов А.В.", shift: 2, role: "Оператор АЛСС", totalHours: 151 },
-    { id: "19", name: "Лиханов Н.А.", shift: 2, role: "Оператор АЛСС", totalHours: 151 },
-    { id: "20", name: "Малыгин А.О.", shift: 2, role: "подсобный рабочий", totalHours: 151 },
-    { id: "21", name: "Булгаков Н.С.", shift: 2, role: "Оператор листогиба", totalHours: 151 },
+    { id: "1", name: "Куликов А.Б.", shift: 1, totalHours: 167 },
+    { id: "2", name: "Грознецкий А.В.", shift: 1, totalHours: 159 },
+    { id: "3", name: "Фараджов Е.А.", shift: 1, totalHours: 159 },
+    { id: "4", name: "Ситников П.В.", shift: 1, totalHours: 159 },
+    { id: "5", name: "Максимов А.В.", shift: 1, totalHours: 159 },
+    { id: "6", name: "Шаритдинов Д.А.", shift: 1, totalHours: 159 },
+    { id: "7", name: "Романовский Д.А.", shift: 1, totalHours: 159 },
+    { id: "8", name: "Борцев Геннадий А.", shift: 1, totalHours: 159 },
+    { id: "9", name: "Шубин М.А.", shift: 1, totalHours: 159 },
+    { id: "10", name: "Клебер Е.И.", shift: 1, totalHours: 159 },
+    { id: "11", name: "Германов А.Я.", shift: 1, totalHours: 159 },
+    { id: "12", name: "Борисов Д.В.", shift: 2, totalHours: 151 },
+    { id: "13", name: "Вепрев С.Н.", shift: 2, totalHours: 151 },
+    { id: "14", name: "Новосёлов И.С.", shift: 2, totalHours: 151 },
+    { id: "15", name: "Елизаров А.О.", shift: 2, totalHours: 151 },
+    { id: "16", name: "Вяткин М.Ф.", shift: 2, totalHours: 151 },
+    { id: "17", name: "Козочкин П.В.", shift: 2, totalHours: 151 },
+    { id: "18", name: "Шахматов А.В.", shift: 2, totalHours: 151 },
+    { id: "19", name: "Лиханов Н.А.", shift: 2, totalHours: 151 },
+    { id: "20", name: "Малыгин А.О.", shift: 2, totalHours: 151 },
+    { id: "21", name: "Булгаков Н.С.", shift: 2, totalHours: 151 },
   ];
 
   const sortedEmployees = [...employees].sort((a, b) => a.shift - b.shift);
@@ -138,7 +137,7 @@ const TimeSheet = () => {
         return;
       }
 
-      // Определение столбцов с днями (ищем числа от 1 до 31)
+      // Определение столбцов с днями
       const dayColumns: { [key: number]: number } = {};
       for (let i = nameColumnIndex + 1; i < headerRow.length; i++) {
         const headerValue = headerRow[i]?.toString().trim();
@@ -194,14 +193,14 @@ const TimeSheet = () => {
 
     // Заголовок
     worksheetData.push(["График смен", "", "Март", "2025"]);
-    worksheetData.push(["Смена", "№ п/п", "Фамилия И.О.", ...days.map(d => d.toString()), "ИТОГ", "Должность", "наставник"]);
+    worksheetData.push(["Смена", "№ п/п", "Фамилия И.О.", ...days.map(d => d.toString()), "ИТОГ", "наставник"]);
 
     // Данные по сменам и сотрудникам
     let index = 1;
     Object.entries(employeesByShift).forEach(([shift, shiftEmployees]) => {
       worksheetData.push([`${shift} смена`]);
       shiftEmployees.forEach(employee => {
-        const row = ["", index++, employee.name, ...days.map(() => ""), employee.totalHours || 0, employee.role, ""];
+        const row = ["", index++, employee.name, ...days.map(() => ""), employee.totalHours || 0, ""];
         worksheetData.push(row);
       });
     });
@@ -298,43 +297,45 @@ const TimeSheet = () => {
           <div className="border rounded-md">
             <Table>
               <TableHeader className="sticky top-0 z-20">
-                <TableRow>
-                  <TableHead className="sticky left-0 bg-background z-10 min-w-24">Смена</TableHead>
-                  <TableHead className="sticky left-24 bg-background z-10 min-w-48">ФАМИЛИЯ И.О.</TableHead>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="sticky left-0 bg-background z-10 min-w-24 border">Смена</TableHead>
+                  <TableHead className="sticky left-24 bg-background z-10 min-w-48 border">ФАМИЛИЯ И.О.</TableHead>
                   {days.map(day => (
                     <TableHead
                       key={day}
-                      className={`text-center min-w-16 ${isWeekend(day) ? 'bg-red-50 text-red-600' : ''}`}
+                      className={`text-center min-w-16 border ${isWeekend(day) ? 'bg-red-50 text-red-600' : ''}`}
                     >
                       <div>{day}</div>
                       <div className="text-xs font-normal">{getDayOfWeekName(day)}</div>
                     </TableHead>
                   ))}
-                  <TableHead className="text-center min-w-16">ИТОГ</TableHead>
-                  <TableHead className="text-center min-w-32">ДОЛЖНОСТЬ</TableHead>
+                  <TableHead className="text-center min-w-16 border">ИТОГ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {Object.entries(employeesByShift).map(([shift, shiftEmployees]) => (
                   shiftEmployees.map((employee, index) => (
-                    <TableRow key={employee.id}>
+                    <TableRow
+                      key={employee.id}
+                      className="hover:bg-gray-100 transition-colors"
+                    >
                       {index === 0 && (
                         <TableCell
                           rowSpan={shiftEmployees.length}
-                          className="font-medium sticky left-0 bg-background z-10 min-w-24 text-center"
+                          className="font-medium sticky left-0 bg-background z-10 min-w-24 text-center border"
                           style={{ writingMode: "vertical-lr", transform: "rotate(180deg)" }}
                         >
                           {getShiftName(shift)}
                         </TableCell>
                       )}
-                      <TableCell className="font-medium sticky left-24 bg-background z-10 min-w-48">
+                      <TableCell className="font-medium sticky left-24 bg-background z-10 min-w-48 border">
                         {employee.name}
                       </TableCell>
                       {days.map(day => (
                         <TableCell
                           key={day}
-                          className={`p-1 text-center ${isWeekend(day) ? 'bg-red-50' : ''} ${
-                            isCellModified(employee.id, day) ? 'bg-yellow-50' : ''
+                          className={`p-1 text-center border ${isWeekend(day) ? 'bg-red-50' : ''} ${
+                            getWorkNorm(employee.id, day) > 0 && isCellModified(employee.id, day) ? 'bg-yellow-50' : ''
                           }`}
                         >
                           {isEditMode ? (
@@ -354,8 +355,7 @@ const TimeSheet = () => {
                           )}
                         </TableCell>
                       ))}
-                      <TableCell className="text-center">{employee.totalHours || 0}</TableCell>
-                      <TableCell className="text-center">{employee.role}</TableCell>
+                      <TableCell className="text-center border">{employee.totalHours || 0}</TableCell>
                     </TableRow>
                   ))
                 ))}
