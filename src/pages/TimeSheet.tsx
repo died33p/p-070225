@@ -80,7 +80,7 @@ const TimeSheet = () => {
     const norm = workNorms.find(
       wn => wn.employeeId === employeeId && format(wn.date, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
     );
-    return norm ? norm.hours : 0; // По умолчанию 0 (выходной)
+    return norm ? norm.hours : 0;
   };
 
   const getCellKey = (employeeId: string, day: number): string => {
@@ -117,16 +117,14 @@ const TimeSheet = () => {
       const data = new Uint8Array(e.target?.result as ArrayBuffer);
       const workbook = XLSX.read(data, { type: 'array' });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
 
       const newNorms: WorkNorm[] = [];
       let currentShift: number | null = null;
-      let employeeIndex = 0;
 
       jsonData.forEach((row: any[], rowIndex: number) => {
         if (row[0]?.toString().includes("СМЕНА")) {
           currentShift = parseInt(row[0].split(" ")[0]);
-          employeeIndex = 0;
           return;
         }
 
@@ -137,17 +135,14 @@ const TimeSheet = () => {
 
         for (let day = 1; day <= daysInMonth; day++) {
           const hours = parseFloat(row[day + 1]) || 0; // Смещение на 2 столбца (Смена, ФИО)
-          if (hours > 0 || row[day + 1] === "") { // Пустая клетка = 0
-            const date = setDate(currentDate, day);
-            newNorms.push({
-              employeeId: employee.id,
-              date,
-              hours,
-              modified: true,
-            });
-          }
+          const date = setDate(currentDate, day);
+          newNorms.push({
+            employeeId: employee.id,
+            date,
+            hours,
+            modified: true,
+          });
         }
-        employeeIndex++;
       });
 
       setWorkNorms(newNorms);
@@ -240,8 +235,8 @@ const TimeSheet = () => {
             <Table>
               <TableHeader className="sticky top-0 z-20">
                 <TableRow>
-                  <TableHead className="sticky left-0 bg-background z-10 min-w-48">Смена</TableHead>
-                  <TableHead className="sticky left-48 bg-background z-10 min-w-48">ФАМИЛИЯ И.О.</TableHead>
+                  <TableHead className="sticky left-0 bg-background z-10 min-w-24">Смена</TableHead>
+                  <TableHead className="sticky left-24 bg-background z-10 min-w-48">ФАМИЛИЯ И.О.</TableHead>
                   {days.map(day => (
                     <TableHead
                       key={day}
@@ -262,12 +257,13 @@ const TimeSheet = () => {
                       {index === 0 && (
                         <TableCell
                           rowSpan={shiftEmployees.length}
-                          className="font-medium sticky left-0 bg-background z-10 min-w-48 text-center"
+                          className="font-medium sticky left-0 bg-background z-10 min-w-24 text-center"
+                          style={{ writingMode: "vertical-lr", transform: "rotate(180deg)" }}
                         >
                           {getShiftName(shift)}
                         </TableCell>
                       )}
-                      <TableCell className="font-medium sticky left-48 bg-background z-10 min-w-48">
+                      <TableCell className="font-medium sticky left-24 bg-background z-10 min-w-48">
                         {employee.name}
                       </TableCell>
                       {days.map(day => (
