@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { ChevronLeft, ChevronRight, Calendar, Save, FileSpreadsheet, Pencil } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Save, FileSpreadsheet, Pencil, Download } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import * as XLSX from 'xlsx';
 
@@ -134,7 +134,7 @@ const TimeSheet = () => {
         if (!employee) return;
 
         for (let day = 1; day <= daysInMonth; day++) {
-          const hours = parseFloat(row[day + 1]) || 0; // Смещение на 2 столбца (Смена, ФИО)
+          const hours = parseFloat(row[day + 1]) || 0;
           const date = setDate(currentDate, day);
           newNorms.push({
             employeeId: employee.id,
@@ -149,6 +149,30 @@ const TimeSheet = () => {
       toast({ title: "Импорт завершен", description: "Данные из Excel загружены" });
     };
     reader.readAsArrayBuffer(file);
+  };
+
+  const downloadTemplate = () => {
+    const workbook = XLSX.utils.book_new();
+    const worksheetData: any[][] = [];
+
+    // Заголовок
+    worksheetData.push(["График смен", "", "Март", "2025"]);
+    worksheetData.push(["Смена", "ФАМИЛИЯ И.О.", ...days, "ИТОГ", "ДОЛЖНОСТЬ"]);
+
+    // Данные по сменам и сотрудникам
+    Object.entries(employeesByShift).forEach(([shift, shiftEmployees]) => {
+      worksheetData.push([`${shift} СМЕНА`]);
+      shiftEmployees.forEach(employee => {
+        const row = ["", employee.name, ...days.map(() => ""), employee.totalHours || 0, employee.role];
+        worksheetData.push(row);
+      });
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Шаблон");
+    
+    // Скачивание файла
+    XLSX.writeFile(workbook, `Шаблон_график_смен_${format(currentDate, 'MMMM_yyyy', { locale: ru })}.xlsx`);
   };
 
   const saveTimeSheet = () => {
@@ -203,6 +227,10 @@ const TimeSheet = () => {
           <div className="flex gap-2">
             {isEditMode ? (
               <>
+                <Button variant="outline" onClick={downloadTemplate}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Скачать шаблон
+                </Button>
                 <Input
                   type="file"
                   accept=".xlsx,.xls"
