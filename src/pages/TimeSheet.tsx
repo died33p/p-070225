@@ -80,7 +80,7 @@ const TimeSheet = () => {
     const norm = workNorms.find(
       wn => wn.employeeId === employeeId && format(wn.date, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
     );
-    return norm ? norm.hours : (employees.find(e => e.id === employeeId)?.shift === 1 ? 8 : 9); // По умолчанию 8 для 1 смены, 9 для 2 смены
+    return norm ? norm.hours : 0; // По умолчанию 0 (выходной)
   };
 
   const getCellKey = (employeeId: string, day: number): string => {
@@ -124,23 +124,20 @@ const TimeSheet = () => {
       let employeeIndex = 0;
 
       jsonData.forEach((row: any[], rowIndex: number) => {
-        // Определяем смену
         if (row[0]?.toString().includes("СМЕНА")) {
           currentShift = parseInt(row[0].split(" ")[0]);
           employeeIndex = 0;
           return;
         }
 
-        // Пропускаем заголовки
-        if (row[2]?.toString().startsWith("ФАМИЛИЯ") || !row[2]) return;
+        if (row[1]?.toString().startsWith("ФАМИЛИЯ") || !row[1]) return;
 
-        const employee = employees.find(e => e.name === row[2] && e.shift === currentShift);
+        const employee = employees.find(e => e.name === row[1] && e.shift === currentShift);
         if (!employee) return;
 
-        // Собираем часы по дням
         for (let day = 1; day <= daysInMonth; day++) {
-          const hours = parseFloat(row[day + 2]) || 0; // Смещение на 3 столбца (Смена, №, ФИО)
-          if (hours > 0) {
+          const hours = parseFloat(row[day + 1]) || 0; // Смещение на 2 столбца (Смена, ФИО)
+          if (hours > 0 || row[day + 1] === "") { // Пустая клетка = 0
             const date = setDate(currentDate, day);
             newNorms.push({
               employeeId: employee.id,
@@ -181,7 +178,7 @@ const TimeSheet = () => {
   };
 
   const getShiftName = (shift: string | number): string => {
-    return shift === 0 || shift === "0" ? "Без смены" : `${shift} СМЕНА`; // Исправлено на формат "1 СМЕНА"
+    return shift === 0 || shift === "0" ? "Без смены" : `${shift} СМЕНА`;
   };
 
   return (
@@ -243,9 +240,8 @@ const TimeSheet = () => {
             <Table>
               <TableHeader className="sticky top-0 z-20">
                 <TableRow>
-                  <TableHead className="sticky left-0 bg-background z-10">Смена</TableHead>
-                  <TableHead className="sticky left-48 bg-background z-10">№ п/п</TableHead>
-                  <TableHead className="sticky left-72 bg-background z-10">ФАМИЛИЯ И.О.</TableHead>
+                  <TableHead className="sticky left-0 bg-background z-10 min-w-48">Смена</TableHead>
+                  <TableHead className="sticky left-48 bg-background z-10 min-w-48">ФАМИЛИЯ И.О.</TableHead>
                   {days.map(day => (
                     <TableHead
                       key={day}
@@ -261,54 +257,47 @@ const TimeSheet = () => {
               </TableHeader>
               <TableBody>
                 {Object.entries(employeesByShift).map(([shift, shiftEmployees]) => (
-                  <React.Fragment key={shift}>
-                    {shiftEmployees.length > 0 && (
-                      <TableRow className="sticky top-10 z-10">
-                        <TableCell colSpan={days.length + 4} className="bg-muted font-semibold">
+                  shiftEmployees.map((employee, index) => (
+                    <TableRow key={employee.id}>
+                      {index === 0 && (
+                        <TableCell
+                          rowSpan={shiftEmployees.length}
+                          className="font-medium sticky left-0 bg-background z-10 min-w-48 text-center"
+                        >
                           {getShiftName(shift)}
                         </TableCell>
-                      </TableRow>
-                    )}
-                    {shiftEmployees.map((employee, index) => (
-                      <TableRow key={employee.id}>
-                        <TableCell className="font-medium sticky left-0 bg-background z-10 min-w-48">
-                          {employee.shift}
+                      )}
+                      <TableCell className="font-medium sticky left-48 bg-background z-10 min-w-48">
+                        {employee.name}
+                      </TableCell>
+                      {days.map(day => (
+                        <TableCell
+                          key={day}
+                          className={`p-1 text-center ${isWeekend(day) ? 'bg-red-50' : ''} ${
+                            isCellModified(employee.id, day) ? 'bg-yellow-50' : ''
+                          }`}
+                        >
+                          {isEditMode ? (
+                            <Input
+                              type="number"
+                              min="0"
+                              max="24"
+                              step="0.5"
+                              className="h-8 text-center"
+                              value={getWorkNorm(employee.id, day)}
+                              onChange={(e) =>
+                                handleWorkNormChange(employee.id, day, parseFloat(e.target.value) || 0)
+                              }
+                            />
+                          ) : (
+                            <span>{getWorkNorm(employee.id, day)}</span>
+                          )}
                         </TableCell>
-                        <TableCell className="font-medium sticky left-48 bg-background z-10 min-w-24">
-                          {index + 1}
-                        </TableCell>
-                        <TableCell className="font-medium sticky left-72 bg-background z-10 min-w-48">
-                          {employee.name}
-                        </TableCell>
-                        {days.map(day => (
-                          <TableCell
-                            key={day}
-                            className={`p-1 text-center ${isWeekend(day) ? 'bg-red-50' : ''} ${
-                              isCellModified(employee.id, day) ? 'bg-yellow-50' : ''
-                            }`}
-                          >
-                            {isEditMode ? (
-                              <Input
-                                type="number"
-                                min="0"
-                                max="24"
-                                step="0.5"
-                                className="h-8 text-center"
-                                value={getWorkNorm(employee.id, day)}
-                                onChange={(e) =>
-                                  handleWorkNormChange(employee.id, day, parseFloat(e.target.value) || 0)
-                                }
-                              />
-                            ) : (
-                              <span>{getWorkNorm(employee.id, day)}</span>
-                            )}
-                          </TableCell>
-                        ))}
-                        <TableCell className="text-center">{employee.totalHours || 0}</TableCell>
-                        <TableCell className="text-center">{employee.role}</TableCell>
-                      </TableRow>
-                    ))}
-                  </React.Fragment>
+                      ))}
+                      <TableCell className="text-center">{employee.totalHours || 0}</TableCell>
+                      <TableCell className="text-center">{employee.role}</TableCell>
+                    </TableRow>
+                  ))
                 ))}
               </TableBody>
             </Table>
