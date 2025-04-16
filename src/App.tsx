@@ -11,6 +11,7 @@ import EmployeeSettings from "./pages/EmployeeSettings";
 import EmployeeDirectory from "./pages/EmployeeDirectory";
 import AdditionalWorkJournal from "./pages/AdditionalWorkJournal";
 import TimeSheet from "./pages/TimeSheet";
+import VideoViewer from "./pages/VideoViewer";
 import { useState } from "react";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => {
                   <Route path="/employee-directory" element={<EmployeeDirectory />} />
                   <Route path="/additional-work" element={<AdditionalWorkJournal />} />
                   <Route path="/timesheet" element={<TimeSheet />} />
+                  <Route path="/video-viewer" element={<VideoViewer />} />
                 </Routes>
               </div>
             </main>

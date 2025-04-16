@@ -1,7 +1,8 @@
+
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
-import { Home, Users, ClipboardList, BarChart, Settings, HelpCircle, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { Home, Users, ClipboardList, BarChart, Settings, HelpCircle, Calendar, ChevronLeft, ChevronRight, Film } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 
@@ -17,6 +18,7 @@ const mainItems: SidebarItem[] = [
   { title: "Аналитика", href: "/analytics", icon: BarChart },
   { title: "График", href: "/timesheet", icon: Calendar },
   { title: "Журнал", href: "/additional-work", icon: ClipboardList },
+  { title: "Просмотр", href: "/video-viewer", icon: Film },
 ];
 
 const settingsItems: SidebarItem[] = [
